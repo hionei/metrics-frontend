@@ -10,6 +10,12 @@ import {
 } from "@web3modal/ethers/react";
 import { BrowserProvider, Contract, formatUnits } from "ethers";
 import { useEffect, useState } from "react";
+import axios from "axios";
+import { API_URL } from "../../../config";
+import { getWeb3 } from "../../../utils/web3";
+import { Report } from "@mui/icons-material";
+import TokenIcon from "@mui/icons-material/Token";
+
 const WSGBAddress = "0x02f0826ef6aD107Cfc861152B32B52fD11BaB9ED";
 
 // The ERC-20 Contract ABI, which is a common contract interface
@@ -22,12 +28,19 @@ const WSGBAbi = [
   "event Transfer(address indexed from, address indexed to, uint amount)",
 ];
 
-const AccountInfo = ({ currentReward }) => {
+const AccountInfo = ({
+  currentReward,
+  curUserVPToGodState,
+  curUserLockedVPToGodState,
+  curUserRewardAmount,
+}) => {
   const { address, chainId, isConnected } = useWeb3ModalAccount();
   const { walletProvider } = useWeb3ModalProvider();
   const [balance, setBalance] = useState(0);
   const [wSGBBalance, setWSGBBalance] = useState(0);
-
+  const [top10lockedVP1, setLockedVP] = useState(0);
+  const [_curUserRewardAmountEther, setCurUserRewardAmountEther] = useState(0);
+  const [_isInTop10, setIsInTop10] = useState(false);
   async function getBalance() {
     if (!isConnected) {
       console.log("User disconnected");
@@ -45,41 +58,78 @@ const AccountInfo = ({ currentReward }) => {
   }
 
   useEffect(() => {
+    const getTop10LockedVP = async () => {
+      const rawData = await axios.get(API_URL + "/get_top10_locked_VP");
+      const top10LockedVP = rawData.data.top10LockedVP;
+      setLockedVP(top10LockedVP);
+
+      const rawDataForIsIn = await axios.get(
+        API_URL + "/is_in_top10/" + address
+      );
+      const isInTop10 = rawData.data.result;
+      setIsInTop10(isInTop10);
+    };
+    getTop10LockedVP();
     if (isConnected) getBalance();
   }, [isConnected]);
 
+  useEffect(() => {
+    console.log(curUserRewardAmount);
+    const web3 = getWeb3();
+    setCurUserRewardAmountEther(
+      Number(web3.utils.fromWei(curUserRewardAmount, "ether")).toFixed(4)
+    );
+  }, [curUserRewardAmount]);
+
   return (
     <div className="flex flex-1 rounded border p-5 relative pt-10 gap-1 justify-around">
-      <div className="flex gap-4 flex-col justify-center align-center">
-        <div>Address: {address}</div>
-        <div>SGB Balance: {Number(balance).toFixed(4)}</div>
-        <div>WSGB Balance: {Number(wSGBBalance).toFixed(4)}</div>
-        <div>Current VP to God</div>
-        <div>Locked VP to God</div>
-        <div>Locked VP of Top 10</div>
+      <div className="flex gap-4 flex-col justify-start align-start">
+        <Chip variant="soft" startDecorator={<TokenIcon />} color="primary">
+          SGB Balance: {Number(balance).toFixed(4)}
+        </Chip>
+        <Chip variant="soft" startDecorator={<TokenIcon />} color="primary">
+          WSGB Balance: {Number(wSGBBalance).toFixed(4)}
+        </Chip>
+        <Chip variant="soft" startDecorator={<TokenIcon />} color="primary">
+          Current VP to God: {curUserVPToGodState.toLocaleString()}
+        </Chip>
+        <Chip variant="soft" startDecorator={<TokenIcon />} color="primary">
+          Locked VP to God: {curUserLockedVPToGodState.toLocaleString()}
+        </Chip>
+        <Chip variant="soft" startDecorator={<TokenIcon />} color="primary">
+          Locked VP of Top 10: {top10lockedVP1.toLocaleString()}
+        </Chip>
         <div>
-          <CircularProgress size="lg" determinate value={14}>
-            {14}%
+          <CircularProgress
+            size="lg"
+            determinate
+            value={
+              _isInTop10
+                ? Math.floor((curUserLockedVPToGodState / top10lockedVP1) * 100)
+                : 0
+            }
+          >
+            {_isInTop10
+              ? Math.floor((curUserLockedVPToGodState / top10lockedVP1) * 100)
+              : 0}
+            %
           </CircularProgress>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <Chip variant="soft" startDecorator={<Sun />} color="primary">
-            Your Locked Amount: {currentReward.toLocaleString()}
-          </Chip>
-          <Chip variant="soft" startDecorator={<Sun />} color="primary">
-            Top 10's Locked Amount: {currentReward.toLocaleString()}
-          </Chip>
         </div>
       </div>
       <div className="absolute top-2 right-2">
-        <Chip
-          color="success"
-          startDecorator={<WorkspacePremiumIcon />}
-          variant="soft"
-        >
-          VIP
-        </Chip>
+        {_isInTop10 ? (
+          <Chip
+            color="success"
+            startDecorator={<WorkspacePremiumIcon />}
+            variant="soft"
+          >
+            VIP
+          </Chip>
+        ) : (
+          <Chip color="warning" startDecorator={<Report />} variant="soft">
+            No in Top 10
+          </Chip>
+        )}
       </div>
       <Card color="danger" orientation="vertical" size="lg" variant="outlined">
         <div>
@@ -98,7 +148,7 @@ const AccountInfo = ({ currentReward }) => {
               variant="outlined"
               disabled
             >
-              Pending 302
+              Pending {_curUserRewardAmountEther}
             </Button>
           </div>
         </div>
@@ -113,7 +163,10 @@ const AccountInfo = ({ currentReward }) => {
               variant="outlined"
               disabled
             >
-              Pending 302
+              Pending{" "}
+              {Math.floor(
+                (curUserLockedVPToGodState / top10lockedVP1) * currentReward
+              )}
             </Button>
           </div>
         </div>

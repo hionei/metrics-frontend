@@ -5,6 +5,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Page404 from "./pages/Page404";
 import Main from "./pages/Main";
 import Delegators from "./pages/Delegators";
+// import Metrics from "./pages/Metrics";
+import Monitor from "./pages/Monitor";
 import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
 import { RPC_URL, RPC_URL_FLARE } from "./config";
 
@@ -53,7 +55,7 @@ createWeb3Modal({
   ethersConfig,
   chains: [songbirdNet, flareNet],
   projectId,
-  enableAnalytics: true, // Optional - defaults to your Cloud configuration
+  enableAnalytics: false, // Optional - defaults to your Cloud configuration
 });
 
 function App() {
@@ -64,6 +66,7 @@ function App() {
       children: [
         { path: "/", element: <Main /> },
         { path: "/delegators", element: <Delegators /> },
+        { path: "/metrics", element: <Monitor /> },
       ],
     },
   ]);

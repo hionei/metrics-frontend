@@ -6,3 +6,4 @@ export const PROVIDER_ADDRESS = "0x69141e890f3a79cd2cff552c0b71508be23712dc";
 export const DECIMAL = 5;
 export const TSONAME = "God TSO";
 export const SUBQUERY_URL = "http://173.249.53.155/";
+export const API_URL = "http://localhost:8000";

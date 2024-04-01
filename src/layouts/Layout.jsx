@@ -9,7 +9,7 @@ export default function Layout() {
   return (
     <>
       <Header />
-      <main>
+      <main className="mt-3">
         <Suspense fallback={<Loader />}>
           <Outlet />
         </Suspense>

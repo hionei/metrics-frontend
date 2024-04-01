@@ -4,12 +4,14 @@ import Table from "@mui/joy/Table";
 import Sheet from "@mui/joy/Sheet";
 import { gql, ApolloClient, InMemoryCache } from "@apollo/client";
 import {
+  API_URL,
   PROVIDER_ADDRESS,
   SUBMITTER_CONTRACT_ADDRESS,
   SUBQUERY_URL,
 } from "../../../config";
 import { getWeb3, getWeb3Contract, weiToEther } from "../../../utils/web3";
 import { truncateString } from "../../../utils/helpers";
+import axios from "axios";
 
 function createData(name, calories, fat, carbs, protein) {
   return { name, calories, fat, carbs, protein };
@@ -32,6 +34,11 @@ export default function TableSheetColorInversion() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
+    const getTop10VP = async () => {
+      const rawData = await axios.get(API_URL + "/top_10_vp");
+      setRows(rawData.data.top10Info);
+    };
+    getTop10VP();
     const GET_DELEGATORS = gql`
       {
         delegates(
@@ -163,7 +170,7 @@ export default function TableSheetColorInversion() {
         });
       });
     };
-    getGQLResult();
+    // getGQLResult();
   }, []);
 
   return (
@@ -204,29 +211,25 @@ export default function TableSheetColorInversion() {
         </thead>
         <tbody>
           {rows.map((row, index) => (
-            <tr key={row.address + index}>
-              <td>{row.id}</td>
+            <tr key={"table-top-10" + index}>
+              <td>{index + 1}</td>
               <td
                 onClick={() => {
-                  navigator.clipboard.writeText(row.address);
+                  navigator.clipboard.writeText(row.owner);
                 }}
               >
-                {truncateString(row.address, 20)}
+                {truncateString(row.owner, 20)}
+              </td>
+              <td>{row.amount && row.amount.toLocaleString()}</td>
+              <td>
+                {row.lockedVP != undefined && row.lockedVP.toLocaleString()}
               </td>
               <td>
-                {row.amount &&
-                  Math.floor(weiToEther(row.amount)).toLocaleString(0)}
+                {row.usualReward != undefined &&
+                  row.usualReward.toLocaleString()}
               </td>
-              <td>
-                {row.lockedAmount != undefined &&
-                  Math.floor(weiToEther(row.lockedAmount))}
-              </td>
-              <td>
-                {row.usualreward != undefined &&
-                  Math.floor(weiToEther(row.usualreward)).toLocaleString()}
-              </td>
-              <td>{row.godreward}</td>
-              <td>{row.percent}</td>
+              <td>{row.godReward?.toLocaleString()}</td>
+              <td>{row.apy} %</td>
             </tr>
           ))}
         </tbody>

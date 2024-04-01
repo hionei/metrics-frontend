@@ -7,13 +7,19 @@ import Top10 from "./Top10";
 import FTSOInfo from "./FTSOInfo";
 import RewardInfo from "./RewardInfo";
 import AccountInfo from "./AccountInfo";
+import { useWeb3ModalAccount } from "@web3modal/ethers/react";
+import BigNumber from "bignumber.js";
 
 const Main = () => {
   const [epochID, setEpochID] = useState(0);
   const [curVotePower, setCurVotePower] = useState(0);
   const [lockedVotePower, setLockedVotePower] = useState(0);
   const [currentReward, setCurrentReward] = useState(0);
+  const { address, chainId, isConnected } = useWeb3ModalAccount();
+  const [curUserVPToGodState, setCurUserVPtoGodState] = useState(0);
+  const [curUserLockedVPToGodState, setCurUserLockedVPtoGodState] = useState(0);
   const [endsIn, setEndsIn] = useState(0);
+  const [curUserRewardAmount, setCurUserRewardAmount] = useState("0");
   const [duration, setDuration] = useState(0);
   const [lockedBlock, setLockedBlock] = useState(0);
 
@@ -44,11 +50,9 @@ const Main = () => {
       const rewardEpochDurationSeconds = await ftsoManagerContract.methods
         .rewardEpochDurationSeconds()
         .call();
-
       const ftsoRewardManagerAddress = await ftsoManagerContract.methods
         .rewardManager()
         .call();
-
       const currentRewardEpochEnds = await ftsoManagerContract.methods
         .currentRewardEpochEnds()
         .call();
@@ -61,45 +65,80 @@ const Main = () => {
       );
 
       const performanceInfo = await ftsoRewardManagerContract.methods
-        .getDataProviderPerformanceInfo(Number(rewardEpochID), PROVIDER_ADDRESS)
+        .getDataProviderPerformanceInfo(rewardEpochID, PROVIDER_ADDRESS)
         .call();
 
-      const stateOfReward = await ftsoRewardManagerContract.methods
-        .getStateOfRewards(PROVIDER_ADDRESS, Number(rewardEpochID))
-        .call();
+      try {
+        const curUserRewardInfo = await ftsoRewardManagerContract.methods
+          .getStateOfRewards(address, rewardEpochID)
+          .call();
 
-      const wnatContractAddress = await ftsoRewardManagerContract.methods
-        .wNat()
-        .call();
+        let curUserReward = new BigNumber(0);
+        curUserRewardInfo[1].forEach((reward) => {
+          curUserReward = curUserReward.plus(new BigNumber(reward));
+        });
 
-      const wNatContract = await getWeb3Contract(
-        web3,
-        wnatContractAddress,
-        "WNat",
-        "contracts/token/implementation/WNat.sol/WNat.json"
-      );
+        setCurUserRewardAmount(curUserReward.toString());
 
-      const lockedVP = await wNatContract.methods
-        .votePowerOf(PROVIDER_ADDRESS)
-        .call();
+        const stateOfReward = await ftsoRewardManagerContract.methods
+          .getStateOfRewards(PROVIDER_ADDRESS, Number(rewardEpochID))
+          .call();
 
-      setDuration(Number(rewardEpochDurationSeconds));
-      setEpochID(Number(rewardEpochID));
+        const wnatContractAddress = await ftsoRewardManagerContract.methods
+          .wNat()
+          .call();
 
-      const lkVP = web3.utils.fromWei(lockedVP, "ether");
-      const curTotalReward = web3.utils.fromWei(performanceInfo[0], "ether");
-      const curReward = web3.utils.fromWei(stateOfReward[1], "ether");
-      const curVP = web3.utils.fromWei(performanceInfo[1], "ether");
-      setLockedVotePower(Math.floor(lkVP));
-      setCurrentReward(Math.floor(curReward));
-      setCurVotePower(Math.floor(curVP));
+        const wNatContract = await getWeb3Contract(
+          web3,
+          wnatContractAddress,
+          "WNat",
+          "contracts/token/implementation/WNat.sol/WNat.json"
+        );
 
-      const endsin = Number(currentRewardEpochEnds) - currentUnixTime();
-      setEndsIn(endsin);
+        const lockedBlock = await ftsoManagerContract.methods
+          .getRewardEpochVotePowerBlock(rewardEpochID)
+          .call();
+
+        const lockedVP = await wNatContract.methods
+          .votePowerOf(PROVIDER_ADDRESS)
+          .call();
+
+        const curUserVPToGod = await wNatContract.methods
+          .votePowerFromTo(address, PROVIDER_ADDRESS)
+          .call();
+
+        setCurUserVPtoGodState(
+          Math.floor(web3.utils.fromWei(curUserVPToGod, "ether"))
+        );
+
+        const curUserLockedVPToGod = await wNatContract.methods
+          .votePowerFromToAt(address, PROVIDER_ADDRESS, lockedBlock)
+          .call();
+
+        setCurUserLockedVPtoGodState(
+          Math.floor(web3.utils.fromWei(curUserLockedVPToGod, "ether"))
+        );
+
+        setDuration(Number(rewardEpochDurationSeconds));
+        setEpochID(Number(rewardEpochID));
+
+        const lkVP = web3.utils.fromWei(lockedVP, "ether");
+        const curTotalReward = web3.utils.fromWei(performanceInfo[0], "ether");
+        const curReward = web3.utils.fromWei(stateOfReward[1], "ether");
+        const curVP = web3.utils.fromWei(performanceInfo[1], "ether");
+        setLockedVotePower(Math.floor(lkVP));
+        setCurrentReward(Math.floor(curReward));
+        setCurVotePower(Math.floor(curVP));
+
+        const endsin = Number(currentRewardEpochEnds) - currentUnixTime();
+        setEndsIn(endsin);
+      } catch (err) {
+        console.log(err);
+      }
     };
 
-    promise();
-  }, []);
+    if (isConnected) promise();
+  }, [isConnected]);
 
   return (
     <>
@@ -114,7 +153,12 @@ const Main = () => {
 
         <div className="flex gap-2 pt-8">
           <RewardInfo currentReward={currentReward} />
-          <AccountInfo currentReward={currentReward} />
+          <AccountInfo
+            currentReward={currentReward}
+            curUserVPToGodState={curUserVPToGodState}
+            curUserLockedVPToGodState={curUserLockedVPToGodState}
+            curUserRewardAmount={curUserRewardAmount}
+          />
         </div>
 
         <div className="mt-5">
