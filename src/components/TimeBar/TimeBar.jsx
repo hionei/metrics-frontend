@@ -17,8 +17,9 @@ export default function TimeBar({ endsIn, duration }) {
   });
 
   useEffect(() => {
+    let interval;
     const startCountDown = (secondsTimestamp) => {
-      let interval = setInterval(() => {
+      interval = setInterval(() => {
         if (secondsTimestamp <= 0) {
           clearInterval(interval);
         }
@@ -31,6 +32,7 @@ export default function TimeBar({ endsIn, duration }) {
     };
 
     startCountDown(endsIn);
+    return () => clearInterval(interval);
   }, [endsIn]);
 
   useEffect(() => {
@@ -46,8 +48,7 @@ export default function TimeBar({ endsIn, duration }) {
             "--Divider-childPosition": `${(position / duration) * 100}%`,
           }}
         >
-          Ends In: {timeFormat.days} days {timeFormat.hours} hours{" "}
-          {timeFormat.minutes} minutes {timeFormat.seconds} seconds
+          Ends In: {timeFormat.days} days {timeFormat.hours} hours {timeFormat.minutes} minutes {timeFormat.seconds} seconds
         </Divider>
         {/* <Sheet variant="soft" sx={{ height: 40, borderRadius: "xs" }} /> */}
       </Stack>

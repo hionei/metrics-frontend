@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { gql, ApolloClient, InMemoryCache } from "@apollo/client";
-// import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
 import { PROVIDER_ADDRESS, SUBQUERY_URL } from "../../config";
 import { getWeb3 } from "../../utils/web3";
-// import Pagination from "@mui/material/Pagination";
+import Pagination from "@mui/material/Pagination";
 
 const columns = [
   { field: "id", headerName: "No", width: 70 },
@@ -62,20 +62,16 @@ const Delegators = () => {
       console.log(results);
       setTotalCount(results.data.delegates.totalCount);
 
-      const newDelegatorInfoArr = results.data.delegates.nodes.map(
-        (delegatorInfo, index) => {
-          return {
-            id: (page - 1) * DISPLAY_COUNT + index + 1,
-            address: delegatorInfo.owner,
-            amount: Math.floor(
-              web3.utils.fromWei(delegatorInfo.amount, "ether")
-            ).toLocaleString(),
-            delegatereward: 0,
-            pinnaclereward: 0,
-            percent: 0,
-          };
-        }
-      );
+      const newDelegatorInfoArr = results.data.delegates.nodes.map((delegatorInfo, index) => {
+        return {
+          id: (page - 1) * DISPLAY_COUNT + index + 1,
+          address: delegatorInfo.owner,
+          amount: Math.floor(web3.utils.fromWei(delegatorInfo.amount, "ether")).toLocaleString(),
+          delegatereward: 0,
+          pinnaclereward: 0,
+          percent: 0,
+        };
+      });
       setRows(newDelegatorInfoArr);
     };
     getGQLResult();
@@ -90,12 +86,7 @@ const Delegators = () => {
     <>
       <div style={{ width: "100%" }} className="flex flex-col gap-5">
         <div className="flex justify-end">
-          <Pagination
-            count={Math.floor(totalCount / DISPLAY_COUNT) + 1}
-            page={page}
-            color="primary"
-            onChange={handleChange}
-          />
+          <Pagination count={Math.floor(totalCount / DISPLAY_COUNT) + 1} page={page} color="primary" onChange={handleChange} />
         </div>
 
         <DataGrid
@@ -110,12 +101,7 @@ const Delegators = () => {
         />
 
         <div className="flex justify-end">
-          <Pagination
-            count={Math.floor(totalCount / DISPLAY_COUNT) + 1}
-            page={page}
-            color="primary"
-            onChange={handleChange}
-          />
+          <Pagination count={Math.floor(totalCount / DISPLAY_COUNT) + 1} page={page} color="primary" onChange={handleChange} />
         </div>
       </div>
     </>

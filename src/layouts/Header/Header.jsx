@@ -48,9 +48,10 @@ const Header = () => {
   };
 
   return (
-    <div className="flex flex-row px-4 py-6 align-center border-b-2">
-      <div className="flex-none w-40 flex align-center justify-center">
-        <Typography level="h1" color="primary">
+    <div className="flex flex-row px-4 py-3 align-center border-b">
+      <div className="flex items-center gap-2 align-center justify-center">
+        <Avatar src="logo.png" size="md" />
+        <Typography level="h4" color="primary">
           {TSONAME}
         </Typography>
       </div>
@@ -58,18 +59,16 @@ const Header = () => {
         <Link level="title-lg" href="/" underline={location.pathname == "/" && "always"}>
           Account
         </Link>
-        <Link level="title-lg" href="/delegators" underline={location.pathname == "/delegators" && "always"}>
-          Delegators
-        </Link>
         <Link level="title-lg" href="/metrics" underline={location.pathname == "/metrics" && "always"}>
           Metrics
         </Link>
       </div>
       {location.pathname != "/metrics" ? (
-        <div className="flex flex-none w-64 gap-1">
+        <div className="flex flex-none justify-end w-64 gap-1">
           {chainId == 19 && (
             <Button
               variant="outlined"
+              sx={{ borderRadius: "2em" }}
               onClick={() => open({ view: "Networks" })}
               startDecorator={<Avatar size="sm" src={options[0].src} />}
             >
@@ -81,13 +80,14 @@ const Header = () => {
             <Button
               onClick={() => open({ view: "Networks" })}
               variant="outlined"
+              sx={{ borderRadius: "2em" }}
               startDecorator={<Avatar size="sm" src={options[1].src} />}
             >
               Flare
             </Button>
           )}
 
-          {chainId != 14 && chainId != 19 && (
+          {isConnected && chainId != 14 && chainId != 19 && (
             <Button
               color="danger"
               onClick={() => open({ view: "Networks" })}
@@ -112,6 +112,7 @@ const Header = () => {
               open();
             }}
             size="md"
+            sx={{ borderRadius: "2em" }}
           >
             {isConnected ? truncateString(address, 6) : "Connect"}
           </Button>

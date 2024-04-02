@@ -16,6 +16,7 @@ import { truncateString } from "../../../utils/helpers";
 import { Badge } from "@mui/material";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import FTSODialog from "./FTSODialog";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -198,6 +199,8 @@ export default function EnhancedTable({ rows, totalVotePower }) {
   const [page, setPage] = React.useState(0);
   const [dense, setDense] = React.useState(false);
   const [rowsPerPage, setRowsPerPage] = React.useState(200);
+  const [dlgStatus, setDlgStatus] = React.useState(false);
+  const [selectedProviderInfo, setSelectedProviderInfo] = React.useState(null);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -219,15 +222,22 @@ export default function EnhancedTable({ rows, totalVotePower }) {
     let newSelected = [];
 
     if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
+      newSelected = newSelected.concat(id);
     } else if (selectedIndex === 0) {
       newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(selected.slice(0, selectedIndex), selected.slice(selectedIndex + 1));
     }
+
+    const selectedProvider = visiRows.filter((row) => {
+      return row.id == id;
+    });
+
+    setSelectedProviderInfo(selectedProvider[0]);
+    setDlgStatus(true);
     setSelected(newSelected);
+  };
+
+  const parentHandleClose = () => {
+    setDlgStatus(false);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -254,6 +264,7 @@ export default function EnhancedTable({ rows, totalVotePower }) {
 
   return (
     <Box sx={{ width: "100%", overflowX: "auto" }}>
+      <FTSODialog status={dlgStatus} parentHandleClose={parentHandleClose} providerInfo={selectedProviderInfo} />
       <Paper sx={{ width: "100%", mb: 2 }}>
         <TableContainer sx={{ overflowX: "auto" }}>
           <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle" size={dense ? "small" : "medium"}>
@@ -344,7 +355,7 @@ export default function EnhancedTable({ rows, totalVotePower }) {
 }
 
 const returnColorDom = (value) => {
-  if (value > 2.5) return <span className="text-red-600">{value}</span>;
-  if (value >= 2.0 && value <= 2.5) return <span className="text-yellow-600">{value}</span>;
-  if (value < 2.0) return <span className="text-green-800">{value}</span>;
+  if (value > 2.5) return <span className="text-red-600">{value}%</span>;
+  if (value >= 2.0 && value <= 2.5) return <span className="text-yellow-600">{value}%</span>;
+  if (value < 2.0) return <span className="text-green-800">{value}%</span>;
 };

@@ -21,11 +21,9 @@ const Main = () => {
   const [endsIn, setEndsIn] = useState(0);
   const [curUserRewardAmount, setCurUserRewardAmount] = useState("0");
   const [duration, setDuration] = useState(0);
-  const [curUserClaimableAmount, setCurUserClaimableAmount] = useState("0");
-  const [isRewardClaimable, setIsRewardClaimable] = useState(false);
+  const [lockedBlock, setLockedBlock] = useState(0);
 
   useEffect(() => {
-    setIsRewardClaimable(false);
     const promise = async () => {
       const web3 = getWeb3();
       const priceSubmitterContract = await getWeb3Contract(
@@ -35,7 +33,9 @@ const Main = () => {
         "contracts/genesis/implementation/PriceSubmitter.sol/PriceSubmitter.json"
       );
 
-      const ftsoManagerAddress = await priceSubmitterContract.methods.getFtsoManager().call();
+      const ftsoManagerAddress = await priceSubmitterContract.methods
+        .getFtsoManager()
+        .call();
 
       const ftsoManagerContract = await getWeb3Contract(
         web3,
@@ -44,10 +44,18 @@ const Main = () => {
         "contracts/ftso/implementation/FtsoManager.sol/FtsoManager.json"
       );
 
-      const rewardEpochID = await ftsoManagerContract.methods.getCurrentRewardEpoch().call();
-      const rewardEpochDurationSeconds = await ftsoManagerContract.methods.rewardEpochDurationSeconds().call();
-      const ftsoRewardManagerAddress = await ftsoManagerContract.methods.rewardManager().call();
-      const currentRewardEpochEnds = await ftsoManagerContract.methods.currentRewardEpochEnds().call();
+      const rewardEpochID = await ftsoManagerContract.methods
+        .getCurrentRewardEpoch()
+        .call();
+      const rewardEpochDurationSeconds = await ftsoManagerContract.methods
+        .rewardEpochDurationSeconds()
+        .call();
+      const ftsoRewardManagerAddress = await ftsoManagerContract.methods
+        .rewardManager()
+        .call();
+      const currentRewardEpochEnds = await ftsoManagerContract.methods
+        .currentRewardEpochEnds()
+        .call();
 
       const ftsoRewardManagerContract = await getWeb3Contract(
         web3,
@@ -56,20 +64,14 @@ const Main = () => {
         "contracts/tokenPools/implementation/FtsoRewardManager.sol/FtsoRewardManager.json"
       );
 
+      const performanceInfo = await ftsoRewardManagerContract.methods
+        .getDataProviderPerformanceInfo(rewardEpochID, PROVIDER_ADDRESS)
+        .call();
+
       try {
-        const unClaimedEpochs = await ftsoRewardManagerContract.methods.getEpochsWithUnclaimedRewards(address).call();
-        let totalReward = new BigNumber(0);
-
-        for (let epoch of unClaimedEpochs) {
-          const unClaimedRewards = await ftsoRewardManagerContract.methods.getStateOfRewards(address, Number(epoch)).call();
-          setIsRewardClaimable(unClaimedRewards[3] ? true : false);
-          for (let reward of unClaimedRewards[1]) {
-            totalReward = totalReward.plus(BigNumber(reward));
-          }
-        }
-        setCurUserClaimableAmount(BigNumber(totalReward).toString());
-
-        const curUserRewardInfo = await ftsoRewardManagerContract.methods.getStateOfRewards(address, rewardEpochID).call();
+        const curUserRewardInfo = await ftsoRewardManagerContract.methods
+          .getStateOfRewards(address, rewardEpochID)
+          .call();
 
         let curUserReward = new BigNumber(0);
         curUserRewardInfo[1].forEach((reward) => {
@@ -78,7 +80,13 @@ const Main = () => {
 
         setCurUserRewardAmount(curUserReward.toString());
 
-        const wnatContractAddress = await ftsoRewardManagerContract.methods.wNat().call();
+        const stateOfReward = await ftsoRewardManagerContract.methods
+          .getStateOfRewards(PROVIDER_ADDRESS, Number(rewardEpochID))
+          .call();
+
+        const wnatContractAddress = await ftsoRewardManagerContract.methods
+          .wNat()
+          .call();
 
         const wNatContract = await getWeb3Contract(
           web3,
@@ -87,8 +95,41 @@ const Main = () => {
           "contracts/token/implementation/WNat.sol/WNat.json"
         );
 
+        const lockedBlock = await ftsoManagerContract.methods
+          .getRewardEpochVotePowerBlock(rewardEpochID)
+          .call();
+
+        const lockedVP = await wNatContract.methods
+          .votePowerOf(PROVIDER_ADDRESS)
+          .call();
+
+        const curUserVPToGod = await wNatContract.methods
+          .votePowerFromTo(address, PROVIDER_ADDRESS)
+          .call();
+
+        setCurUserVPtoGodState(
+          Math.floor(web3.utils.fromWei(curUserVPToGod, "ether"))
+        );
+
+        const curUserLockedVPToGod = await wNatContract.methods
+          .votePowerFromToAt(address, PROVIDER_ADDRESS, lockedBlock)
+          .call();
+
+        setCurUserLockedVPtoGodState(
+          Math.floor(web3.utils.fromWei(curUserLockedVPToGod, "ether"))
+        );
+
         setDuration(Number(rewardEpochDurationSeconds));
         setEpochID(Number(rewardEpochID));
+
+        const lkVP = web3.utils.fromWei(lockedVP, "ether");
+        const curTotalReward = web3.utils.fromWei(performanceInfo[0], "ether");
+        const curReward = web3.utils.fromWei(stateOfReward[1], "ether");
+        const curVP = web3.utils.fromWei(performanceInfo[1], "ether");
+        setLockedVotePower(Math.floor(lkVP));
+        setCurrentReward(Math.floor(curReward));
+        setCurVotePower(Math.floor(curVP));
+
         const endsin = Number(currentRewardEpochEnds) - currentUnixTime();
         setEndsIn(endsin);
       } catch (err) {
@@ -97,7 +138,7 @@ const Main = () => {
     };
 
     if (isConnected) promise();
-  }, [isConnected, address]);
+  }, [isConnected]);
 
   return (
     <>
@@ -111,15 +152,17 @@ const Main = () => {
         <TimeBar endsIn={endsIn} duration={duration} />
 
         <div className="flex gap-2 pt-8">
-          {/* <RewardInfo currentReward={currentReward} /> */}
+          <RewardInfo currentReward={currentReward} />
           <AccountInfo
             currentReward={currentReward}
             curUserVPToGodState={curUserVPToGodState}
             curUserLockedVPToGodState={curUserLockedVPToGodState}
             curUserRewardAmount={curUserRewardAmount}
-            curUserClaimableAmount={curUserClaimableAmount}
-            isRewardClaimable={isRewardClaimable}
           />
+        </div>
+
+        <div className="mt-5">
+          <Top10 />
         </div>
       </div>
     </>
