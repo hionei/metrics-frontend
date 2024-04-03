@@ -56,10 +56,10 @@ const Header = () => {
         </Typography>
       </div>
       <div className="flex-1 flex gap-4 justify-center">
-        <Link level="title-lg" href="/" underline={location.pathname == "/" && "always"}>
+        <Link level="title-lg" href="/" underline={location.pathname == "/" ? "always" : "none"}>
           Account
         </Link>
-        <Link level="title-lg" href="/metrics" underline={location.pathname == "/metrics" && "always"}>
+        <Link level="title-lg" href="/metrics" underline={location.pathname == "/metrics" ? "always" : "none"}>
           Metrics
         </Link>
       </div>

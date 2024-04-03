@@ -1,66 +1,55 @@
-import Chip from "@mui/joy/Chip";
-import { Card, Typography } from "@mui/joy";
-import CircularProgress from "@mui/joy/CircularProgress";
-import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import Button from "@mui/joy/Button";
-import Sun from "@mui/icons-material/LightMode";
 import { useWeb3ModalProvider, useWeb3ModalAccount } from "@web3modal/ethers/react";
-import { BrowserProvider, Contract, formatUnits } from "ethers";
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { API_URL } from "../../../config";
 import { getWeb3 } from "../../../utils/web3";
-import { Report } from "@mui/icons-material";
-import TokenIcon from "@mui/icons-material/Token";
 import { useSelector } from "react-redux";
-
-const WSGBAddress = "0x02f0826ef6aD107Cfc861152B32B52fD11BaB9ED";
-
-// The ERC-20 Contract ABI, which is a common contract interface
-// for tokens (this is the Human-Readable ABI format)
-const WSGBAbi = [
-  "function name() view returns (string)",
-  "function symbol() view returns (string)",
-  "function balanceOf(address) view returns (uint)",
-  "function transfer(address to, uint amount)",
-  "event Transfer(address indexed from, address indexed to, uint amount)",
-];
+import IconButton from "@mui/material/IconButton";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import DelegateDlg from "../Dialogs/DelegateDlg";
 
 const AccountInfo = ({
-  currentReward,
-  curUserVPToGodState,
-  curUserLockedVPToGodState,
   curUserRewardAmount,
   curUserClaimableAmount,
   isRewardClaimable,
+  onSgbWrapClicked,
+  onSgbSendClicked,
+  onWsgbUnwrapClicked,
+  onWsgbSendClicked,
+  onDelegateClicked,
+  onAutoClaimClicked,
+  onClaimRewardClicked,
+  onFlareDropClaimClicked,
+  balance,
+  delegatees,
+  wsgbBalance,
+  onDelegate,
+  loading,
 }) => {
   const { address, chainId, isConnected } = useWeb3ModalAccount();
-  const { walletProvider } = useWeb3ModalProvider();
-  const [balance, setBalance] = useState(0);
-  const [wSGBBalance, setWSGBBalance] = useState(0);
+  const [_balance, setBalance] = useState(balance);
+  const [_wSGBBalance, setWSGBBalance] = useState(wsgbBalance);
   const [_curUserRewardAmountEther, setCurUserRewardAmountEther] = useState(0);
   const [_curUserClaimableAmountEther, setCurUserClaimableAmountEther] = useState(0);
   const symbol = useSelector((state) => state.network.symbol);
-
-  async function getBalance() {
-    if (!isConnected) {
-      console.log("User disconnected");
-      return 0;
-    }
-
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const balance = await ethersProvider.getBalance(address);
-    setBalance(formatUnits(balance, 18));
-    const signer = await ethersProvider.getSigner();
-    // // The Contract object
-    const WSGBContract = new Contract(WSGBAddress, WSGBAbi, signer);
-    const WSGBBalance = await WSGBContract.balanceOf(address);
-    setWSGBBalance(formatUnits(WSGBBalance, 18));
-  }
+  const providerInfo = useSelector((state) => state.providersInfo.data);
+  const [sumOfBip, setSumOfBip] = useState(0);
+  const [isOpenDelegateDlg, setIsOpenDelegateDlg] = useState(false);
+  const [selectedAddr, setSelectedAddr] = useState("");
+  const [selectedAddrBip, setSelectedAddrBip] = useState(0);
+  const [selectedAddrOtherBip, setSelectedAddrOtherBip] = useState(0);
 
   useEffect(() => {
-    if (isConnected) getBalance();
-  }, [isConnected, address]);
+    let bipSum = 0;
+    delegatees.forEach((delegatee) => {
+      bipSum += Number(delegatee.bip);
+    });
+    setSumOfBip(bipSum);
+  }, [delegatees]);
+
+  useEffect(() => {
+    setBalance(balance);
+    setWSGBBalance(wsgbBalance);
+  }, [balance, wsgbBalance]);
 
   useEffect(() => {
     const web3 = getWeb3();
@@ -68,12 +57,37 @@ const AccountInfo = ({
     setCurUserClaimableAmountEther(Number(web3.utils.fromWei(curUserClaimableAmount, "ether")).toFixed(4));
   }, [curUserRewardAmount, curUserClaimableAmount]);
 
+  const _onDelegate = async (toAddress, bip) => {
+    onDelegate(toAddress, bip);
+  };
+
+  const onEdit = (addr, bip, otherBip) => {
+    setSelectedAddr(addr);
+    setSelectedAddrBip(bip);
+    setSelectedAddrOtherBip(otherBip);
+
+    console.log(addr, bip, otherBip);
+    setIsOpenDelegateDlg(true);
+  };
+
+  const handleClose = () => {
+    setIsOpenDelegateDlg(false);
+  };
+
   return (
     <>
+      <DelegateDlg
+        open={isOpenDelegateDlg}
+        handleClose={handleClose}
+        balance={0}
+        onDelegate={_onDelegate}
+        loading={loading}
+        selectedProvider={{ addr: selectedAddr, bip: selectedAddrBip, otherBip: selectedAddrOtherBip }}
+      />
       <div className="flex flex-1 flex-col rounded border p-5 relative pt-10 gap-1 justify-around">
         <div className="mb-5">
           <h1 className="text-2xl font-bold">Welcome to Flare Universe!</h1>
-          <p>Auto-claim fee is zero</p>
+          <p>Manage your assets easily!</p>
         </div>
         <div className="flex gap-4 flex-col justify-start align-start mb-5">
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
@@ -89,13 +103,21 @@ const AccountInfo = ({
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
             <div>
               <label>SGB Balance: </label>
-              <span className="pl-6"> {Number(balance).toFixed(2)}</span>
+              <span className="pl-6"> {Number(_balance).toFixed(2)}</span>
             </div>
             <div className="flex gap-1">
-              <Button variant="outlined" sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}>
+              <Button
+                variant="outlined"
+                sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                onClick={onSgbWrapClicked}
+              >
                 Wrap
               </Button>
-              <Button variant="outlined" sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}>
+              <Button
+                variant="outlined"
+                sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                onClick={onSgbSendClicked}
+              >
                 Send
               </Button>
             </div>
@@ -103,13 +125,21 @@ const AccountInfo = ({
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
             <div>
               <label>WSGB Balance: </label>
-              <span className="pl-6">{Number(wSGBBalance).toFixed(2)}</span>
+              <span className="pl-6">{Number(_wSGBBalance).toFixed(2)}</span>
             </div>
             <div className="flex gap-1">
-              <Button variant="outlined" sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}>
+              <Button
+                variant="outlined"
+                sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                onClick={onWsgbUnwrapClicked}
+              >
                 Unwrap
               </Button>
-              <Button variant="outlined" sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}>
+              <Button
+                variant="outlined"
+                sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                onClick={onWsgbSendClicked}
+              >
                 Send
               </Button>
             </div>
@@ -117,15 +147,43 @@ const AccountInfo = ({
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
             <div>Delegate to FTSO provider: </div>
             <div>
-              <Button variant="outlined" sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}>
+              {delegatees.map((delegatee, index) => {
+                return (
+                  <div key={"deletee" + index}>
+                    {`${
+                      providerInfo.filter((provider) => provider.address == delegatee.address && provider.chainId == "19")[0]
+                        ?.name || ""
+                    } - ${delegatee.address}`}{" "}
+                    {`(${Number(delegatee.bip) / 100}%)`}
+                    <IconButton
+                      aria-label="edit"
+                      color="primary"
+                      onClick={() => onEdit(delegatee.address, Number(delegatee.bip), sumOfBip - Number(delegatee.bip))}
+                    >
+                      <EditRoundedIcon />
+                    </IconButton>
+                  </div>
+                );
+              })}
+            </div>
+            <div>
+              <Button
+                variant="outlined"
+                sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                onClick={onDelegateClicked}
+              >
                 Delegate
               </Button>
             </div>
           </div>
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
-            <div>Auto-claim (fee: 0) </div>
+            <div className="">Auto-claim (fee: 0.1 {symbol}) </div>
             <div>
-              <Button variant="outlined" sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}>
+              <Button
+                variant="outlined"
+                sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                onClick={onAutoClaimClicked}
+              >
                 Set
               </Button>
             </div>
@@ -143,17 +201,16 @@ const AccountInfo = ({
           <div className="gap-1 flex justify-end items-center">
             <div className="flex-1">
               {isRewardClaimable ? (
-                <Button color="danger" onClick={function () {}} variant="outlined" sx={{ bgcolor: "white", borderRadius: "2em" }}>
+                <Button
+                  color="danger"
+                  onClick={onClaimRewardClicked}
+                  variant="outlined"
+                  sx={{ bgcolor: "white", borderRadius: "2em" }}
+                >
                   Claim {_curUserClaimableAmountEther} {symbol}
                 </Button>
               ) : (
-                <Button
-                  color="danger"
-                  onClick={function () {}}
-                  variant="outlined"
-                  disabled
-                  sx={{ bgcolor: "white", borderRadius: "2em" }}
-                >
+                <Button color="danger" variant="outlined" disabled sx={{ bgcolor: "white", borderRadius: "2em" }}>
                   Pending {_curUserRewardAmountEther}
                 </Button>
               )}

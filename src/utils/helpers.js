@@ -23,3 +23,11 @@ export const truncateString = (str, maxLen) => {
 
   return str.substring(0, maxLen) + "...";
 };
+
+export const isValidEthereumAddress = (address) => {
+  // Ethereum address regular expression
+  const regex = /^(0x)?[0-9a-fA-F]{40}$/;
+
+  // Check if the address matches the regular expression
+  return regex.test(address);
+};

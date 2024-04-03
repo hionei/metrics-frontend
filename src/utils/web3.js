@@ -2,8 +2,8 @@ import Web3 from "web3";
 import { RPC_URL } from "../config";
 import fs from "fs";
 
-export const getWeb3 = () => {
-  const web3 = new Web3(new Web3.providers.HttpProvider(RPC_URL));
+export const getWeb3 = (provider = undefined) => {
+  const web3 = new Web3(provider || new Web3.providers.HttpProvider("https://songbird-api.flare.network/ext/C/rpc"));
   // web3.setProvider(new Web3.providers.HttpProvider(RPC_URL));
   return web3;
 };
