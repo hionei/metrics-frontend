@@ -8,7 +8,7 @@ import Monitor from "./pages/Monitor";
 import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
 import { RPC_URL, EXPLORER_URL } from "./config";
 
-const projectId = "Flare_universe_911";
+const projectId = "prj_gMcJ7AZpBwfD7jJhQ2ORUqST2enE";
 
 // 2. Set chains
 const songbirdNet = {
