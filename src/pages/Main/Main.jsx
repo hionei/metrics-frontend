@@ -1,9 +1,8 @@
 import { getAbi, getWeb3, getWeb3Contract } from "../../utils/web3";
 import { useEffect, useState } from "react";
 import TimeBar from "../../components/TimeBar";
-import { SUBMITTER_CONTRACT_ADDRESS, PROVIDER_ADDRESS } from "../../config";
+import { SUBMITTER_CONTRACT_ADDRESS, WSGBAddress, DISTRIBUTION_CONTRACT_ADDRESS, API_URL } from "../../config";
 import { currentUnixTime } from "../../utils/helpers";
-import Top10 from "./Top10";
 import FTSOInfo from "./FTSOInfo";
 import RewardInfo from "./RewardInfo";
 import AccountInfo from "./AccountInfo";
@@ -15,13 +14,16 @@ import Web3 from "web3";
 import SendSGBDlg from "./Dialogs/SendSGBDlg/SendSGBDlg";
 import UnwrapSGBDlg from "./Dialogs/UnwrapSGBDlg";
 import SendWSGBDlg from "./Dialogs/SendWSGBDlg";
+import Chip from "@mui/joy/Chip";
 import DelegateDlg from "./Dialogs/DelegateDlg";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { setProvidersInfo } from "../../store/reducers/bitforstSlice";
 import { setIsLoading } from "../../store/reducers/loaderSlice";
 import SetAutoClaimDlg from "./Dialogs/SetAutoClaimDlg";
-const WSGBAddress = "0x02f0826ef6aD107Cfc861152B32B52fD11BaB9ED";
+import { setExecutorsInfo } from "../../store/reducers/executorsSlice";
+import ClaimRewardDlg from "./Dialogs/ClaimRewardDlg/";
+import ClaimFlareDropDlg from "./Dialogs/ClaimFlareDropDlg";
 
 // The ERC-20 Contract ABI, which is a common contract interface
 // for tokens (this is the Human-Readable ABI format)
@@ -41,6 +43,9 @@ const Main = () => {
   const [curUserRewardAmount, setCurUserRewardAmount] = useState("0");
   const [duration, setDuration] = useState(0);
   const [curUserClaimableAmount, setCurUserClaimableAmount] = useState("0");
+  const [unClaimedEpochs, setUnClaimedEpochs] = useState([]);
+  const [flareDropReward, setFlareDropReward] = useState(0);
+  const [flareDropMonths, setFlareDropMonths] = useState([]);
   const [isRewardClaimable, setIsRewardClaimable] = useState(false);
   const [isOpenWrapDlg, setIsOpenWrapDlg] = useState(false);
   const [isOpenSendSGBDlg, setIsOpenSendSGBDlg] = useState(false);
@@ -48,15 +53,45 @@ const Main = () => {
   const [isOpenSendWSGBDlg, setIsOpenSendWSGBDlg] = useState(false);
   const [isOpenDelegateDlg, setIsOpenDelegateDlg] = useState(false);
   const [isOpenSetAutoClaimDlg, setIsOpenSetAutoClaimDlg] = useState(false);
+  const [isOpenClaimDlg, setIsOpenClaimDlg] = useState(false);
+  const [isOpenClaimFlareDropDlg, setIsOpenClaimFlareDrop] = useState(false);
 
   const { walletProvider } = useWeb3ModalProvider();
   const [balance, setBalance] = useState(0);
   const [wSGBBalance, setWSGBBalance] = useState(0);
+  const [currentMonth, setCurrentMonth] = useState(0);
+  // contract
   const [wnatContract, setWNatContract] = useState({ contract: null, address: null });
+  const [CSMContract, setCSMContract] = useState({ contract: null, address: "" });
+  const [ftsoRewardManagerContract, setFtsoRewardManagerContract] = useState({ contract: null, address: null });
+  const [DTDContract, setDTDContract] = useState({ contract: null, address: null });
+
   const [delegatees, setDelegatees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [error, setError] = useState(0);
+  const [connectedExecutors, setConnectedExecutors] = useState([]);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (isConnected) {
+      const addNewUser = async () => {
+        try {
+          await axios.post(API_URL[chainId] + "/add-new-user", { address: address });
+        } catch (err) {
+          console.log(err.message);
+        }
+      };
+
+      addNewUser();
+    }
+    if (!isConnected) {
+      setBalance("");
+      setWSGBBalance("");
+      setDelegatees([]);
+      setConnectedExecutors([]);
+    }
+  }, [isConnected, address]);
 
   async function getBalance() {
     if (!isConnected) {
@@ -68,7 +103,7 @@ const Main = () => {
     const balance = await ethersProvider.getBalance(address);
     setBalance(formatUnits(balance, 18));
     const signer = await ethersProvider.getSigner();
-    const WSGBContract = new Contract(WSGBAddress, WSGBAbi, signer);
+    const WSGBContract = new Contract(WSGBAddress[chainId], WSGBAbi, signer);
     const WSGBBalance = await WSGBContract.balanceOf(address);
     setWSGBBalance(formatUnits(WSGBBalance, 18));
   }
@@ -115,18 +150,65 @@ const Main = () => {
         "contracts/tokenPools/implementation/FtsoRewardManager.sol/FtsoRewardManager.json"
       );
 
-      const claimSetupManagerAddress = await ftsoRewardManagerContract.methods.claimSetupManager();
+      if (chainId == 14) {
+        const distributionToDelegatorsContract = await getWeb3Contract(
+          web3,
+          DISTRIBUTION_CONTRACT_ADDRESS,
+          "DistributionToDelegators",
+          "contracts/tokenPools/implementation/DistributionToDelegators.sol/DistributionToDelegators.json"
+        );
+
+        setDTDContract({ contract: distributionToDelegatorsContract, address: DISTRIBUTION_CONTRACT_ADDRESS });
+
+        const months = await distributionToDelegatorsContract.methods.getClaimableMonths().call();
+        const curMonth = await distributionToDelegatorsContract.methods.getCurrentMonth().call();
+        setCurrentMonth(Number(curMonth));
+        let sumOfFlareDropReward = 0;
+        let startMonth = Number(months[0]);
+        let endMonth = Number(months[1]);
+
+        let monthsIntList = [];
+        for (let i = startMonth; i <= endMonth; i++) {
+          const amount = await distributionToDelegatorsContract.methods.getClaimableAmount(i).call();
+          const amountEther = web3.utils.fromWei(amount, "ether");
+          monthsIntList.push(Number(i));
+          sumOfFlareDropReward += Number(amountEther);
+        }
+        setFlareDropReward(sumOfFlareDropReward);
+        setFlareDropMonths(monthsIntList);
+      }
+
+      setFtsoRewardManagerContract({ contract: ftsoRewardManagerContract, address: ftsoRewardManagerAddress });
+
+      const claimSetupManagerAddress = await ftsoRewardManagerContract.methods.claimSetupManager().call();
 
       const claimSetupManagerContract = await getWeb3Contract(
         web3,
         claimSetupManagerAddress,
         "ClaimSetupManager",
-        "contracts/tokenPools/implementation/FtsoRewardManager.sol/FtsoRewardManager.json"
+        "contracts/claimSetupManager/ClaimSetupManager.json"
       );
+
+      setCSMContract({ contract: claimSetupManagerContract, address: claimSetupManagerAddress });
+
+      const rawResult = await claimSetupManagerContract.methods.getRegisteredExecutors(0, 10).call();
+      let executersInfo = [];
+      for (let executerAddr of rawResult[0]) {
+        const feeWei = await claimSetupManagerContract.methods.getExecutorCurrentFeeValue(executerAddr).call();
+        const fee = web3.utils.fromWei(feeWei, "ether");
+        executersInfo.push({ address: executerAddr, fee: fee });
+      }
+
+      dispatch(setExecutorsInfo(executersInfo));
+
+      const _connectedExecutors = await claimSetupManagerContract.methods.claimExecutors(address).call();
+      setConnectedExecutors(_connectedExecutors);
 
       try {
         const unClaimedEpochs = await ftsoRewardManagerContract.methods.getEpochsWithUnclaimedRewards(address).call();
         let totalReward = new BigNumber(0);
+
+        setUnClaimedEpochs(unClaimedEpochs);
 
         for (let epoch of unClaimedEpochs) {
           const unClaimedRewards = await ftsoRewardManagerContract.methods.getStateOfRewards(address, Number(epoch)).call();
@@ -198,8 +280,12 @@ const Main = () => {
   const onAutoClaimClicked = () => {
     setIsOpenSetAutoClaimDlg(true);
   };
-  const onClaimRewardClicked = () => {};
-  const onFlareDropClaimClicked = () => {};
+  const onClaimRewardClicked = () => {
+    setIsOpenClaimDlg(true);
+  };
+  const onFlareDropClaimClicked = () => {
+    setIsOpenClaimFlareDrop(true);
+  };
 
   const handleClose = () => {
     setIsOpenWrapDlg(false);
@@ -208,6 +294,8 @@ const Main = () => {
     setIsOpenSendWSGBDlg(false);
     setIsOpenDelegateDlg(false);
     setIsOpenSetAutoClaimDlg(false);
+    setIsOpenClaimDlg(false);
+    setIsOpenClaimFlareDrop(false);
   };
 
   const onWrapSGB = async (value) => {
@@ -319,14 +407,184 @@ const Main = () => {
     }
   };
 
+  const onUnDelegateClicked = async () => {
+    let estimatedGas = await wnatContract.contract.methods
+      .undelegateAll()
+      .estimateGas({ from: address, to: wnatContract.address });
+
+    estimatedGas = Math.round(Number(estimatedGas) * 1.2);
+
+    try {
+      dispatch(setIsLoading(true));
+      await wnatContract.contract.methods.undelegateAll().send({ from: address, gas: estimatedGas });
+      dispatch(setIsLoading(false));
+
+      setRefresh((state) => !state);
+      handleClose();
+    } catch (err) {
+      dispatch(setIsLoading(false));
+      console.log(err);
+      handleClose();
+    }
+  };
+
+  const onEnableAutoClaim = async (executorsInfo, enableAutoClaim) => {
+    const web3 = getWeb3(walletProvider);
+    if (enableAutoClaim) {
+      try {
+        if (executorsInfo.length == 0) {
+          setError(1);
+          return;
+        }
+
+        let executorsParam = [];
+        let feeParam = 0;
+
+        for (let executor of executorsInfo) {
+          executorsParam.push(executor.address);
+          feeParam += Number(executor.fee);
+        }
+
+        console.log(executorsParam, feeParam);
+
+        let estimatedGas = await CSMContract.contract.methods
+          .setClaimExecutors(executorsParam, feeParam)
+          .estimateGas({ from: address, to: CSMContract.address, value: web3.utils.toWei(feeParam, "ether") });
+
+        estimatedGas = Math.round(Number(estimatedGas) * 1.2);
+
+        // dispatch(setIsLoading(true));
+
+        // await CSMContract.contract.methods
+        //   .setClaimExecutors(executorsParam, feeParam)
+        //   .send({ from: address, gas: estimatedGas, value: web3.utils.toWei(feeParam, "ether") });
+        setRefresh((state) => !state);
+
+        if (chainId == 14) {
+          try {
+            const result = await axios.post(API_URL[chainId] + "/enable-auto-claim", {
+              address: address,
+            });
+          } catch (err) {
+            console.log(err.message);
+            alert(err.message);
+          }
+        } else if (chainId == 19) {
+          try {
+            const result = await axios.post(API_URL[chainId] + "/enable-auto-claim", {
+              address: address,
+            });
+          } catch (err) {
+            console.log(err.message);
+            alert(err.message);
+          }
+        }
+
+        dispatch(setIsLoading(false));
+      } catch (err) {
+        dispatch(setIsLoading(false));
+      }
+    } else {
+      try {
+        let executorsParam = [];
+        let feeParam = 0;
+
+        let estimatedGas = await CSMContract.contract.methods
+          .setClaimExecutors(executorsParam, feeParam)
+          .estimateGas({ from: address, to: CSMContract.address });
+
+        estimatedGas = Math.round(Number(estimatedGas) * 1.2);
+
+        dispatch(setIsLoading(true));
+
+        await CSMContract.contract.methods.setClaimExecutors(executorsParam, feeParam).send({ from: address, gas: estimatedGas });
+
+        if (chainId == 14) {
+          try {
+            const result = await axios.post(API_URL[chainId] + "/remove-auto-claim", {
+              address: address,
+            });
+          } catch (err) {
+            console.log(err.message);
+            alert(err.message);
+          }
+        } else if (chainId == 19) {
+          try {
+            const result = await axios.post(API_URL[chainId] + "/remove-auto-claim", {
+              address: address,
+            });
+          } catch (err) {
+            console.log(err.message);
+            alert(err.message);
+          }
+        }
+        setRefresh((state) => !state);
+
+        dispatch(setIsLoading(false));
+      } catch (err) {
+        dispatch(setIsLoading(false));
+      }
+    }
+  };
+
+  const onClaimFlareDrop = async () => {
+    let estimatedGas = await DTDContract.contract.methods
+      .claim(address, address, currentMonth - 1, false)
+      .estimateGas({ from: address, to: DTDContract.address });
+
+    estimatedGas = Math.round(Number(estimatedGas) * 1.2);
+
+    try {
+      dispatch(setIsLoading(true));
+      await DTDContract.contract.methods
+        .claim(address, address, currentMonth - 1, false)
+        .send({ from: address, gas: estimatedGas });
+      dispatch(setIsLoading(false));
+
+      setRefresh((state) => !state);
+      handleClose();
+    } catch (err) {
+      dispatch(setIsLoading(false));
+      console.log(err);
+      handleClose();
+    }
+  };
+
+  const onClaim = async () => {
+    let estimatedGas = await ftsoRewardManagerContract.contract.methods
+      .claim(address, address, epochID - 1, false)
+      .estimateGas({ from: address, to: ftsoRewardManagerContract.address });
+
+    estimatedGas = Math.round(Number(estimatedGas) * 1.2);
+
+    try {
+      dispatch(setIsLoading(true));
+      await ftsoRewardManagerContract.contract.methods
+        .claim(address, address, epochID - 1, false)
+        .send({ from: address, gas: estimatedGas });
+      dispatch(setIsLoading(false));
+
+      setRefresh((state) => !state);
+      handleClose();
+    } catch (err) {
+      dispatch(setIsLoading(false));
+      console.log(err);
+      handleClose();
+    }
+  };
+
+  const setErrorChanged = (value) => {
+    setError(value);
+  };
+
   return (
     <>
       <div className="w-full px-[10%]">
-        <FTSOInfo epochID={epochID} />
+        <div>
+          <FTSOInfo epochID={epochID} endsIn={endsIn} duration={duration} />
+        </div>
 
-        <TimeBar endsIn={endsIn} duration={duration} />
-
-        <div className="flex gap-2 pt-8">
+        <div className="flex gap-2 pt-8 relative">
           {/* <RewardInfo currentReward={currentReward} /> */}
           <AccountInfo
             balance={balance}
@@ -336,6 +594,9 @@ const Main = () => {
             curUserClaimableAmount={curUserClaimableAmount}
             isRewardClaimable={isRewardClaimable}
             delegatees={delegatees}
+            connectedExecutors={connectedExecutors}
+            claimFlareDropAmount={flareDropReward}
+            onUnDelegateClicked={onUnDelegateClicked}
             onSgbWrapClicked={onSgbWrapClicked}
             onSgbSendClicked={onSgbSendClicked}
             onWsgbUnwrapClicked={onWsgbUnwrapClicked}
@@ -375,13 +636,35 @@ const Main = () => {
             handleClose={handleClose}
             balance={wSGBBalance}
             onDelegate={onDelegate}
+            delegatees={delegatees}
             loading={loading}
           />
           <SetAutoClaimDlg
             open={isOpenSetAutoClaimDlg}
             handleClose={handleClose}
             balance={wSGBBalance}
-            onDelegate={onDelegate}
+            onEnableAutoClaim={onEnableAutoClaim}
+            loading={loading}
+            error={error}
+            setError={setErrorChanged}
+          />
+          <ClaimRewardDlg
+            unClaimedEpochs={unClaimedEpochs}
+            curUserRewardAmount={curUserRewardAmount}
+            unclaimedReward={curUserClaimableAmount}
+            open={isOpenClaimDlg}
+            handleClose={handleClose}
+            balance={balance}
+            onClaim={onClaim}
+            loading={loading}
+          />
+          <ClaimFlareDropDlg
+            unClaimedMonths={flareDropMonths}
+            unclaimedReward={flareDropReward}
+            open={isOpenClaimFlareDropDlg}
+            handleClose={handleClose}
+            balance={balance}
+            onClaimFlareDrop={onClaimFlareDrop}
             loading={loading}
           />
         </div>

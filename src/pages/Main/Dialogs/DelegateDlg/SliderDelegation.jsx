@@ -5,59 +5,37 @@ import CreatableSelect from "react-select/creatable";
 import Slider from "@mui/material/Slider";
 import { useSelector } from "react-redux";
 
-const marks = [
-  {
-    value: 0,
-    label: "0%",
-  },
-  {
-    value: 10,
-    label: "10%",
-  },
-  {
-    value: 20,
-    label: "20%",
-  },
-  {
-    value: 30,
-    label: "30%",
-  },
-  {
-    value: 40,
-    label: "40%",
-  },
-  {
-    value: 50,
-    label: "50%",
-  },
-  {
-    value: 60,
-    label: "60%",
-  },
-  {
-    value: 70,
-    label: "70%",
-  },
-  {
-    value: 80,
-    label: "80%",
-  },
-  {
-    value: 90,
-    label: "90%",
-  },
-  {
-    value: 100,
-    label: "100%",
-  },
-];
-
 function valuetext(value) {
   return `${value}%`;
 }
 
-const SliderDelegation = forwardRef(({ onValueChange, defaultValue }, ref) => {
+const SliderDelegation = forwardRef(({ onValueChange, defaultValue, totalBip, selectedProvider }, ref) => {
   const [value, setValue] = useState(defaultValue);
+  const [marks, setMarks] = useState([]);
+  const [maxValue, setMaxValue] = useState(0);
+
+  useEffect(() => {
+    let marksList = [];
+    if (selectedProvider) {
+      for (let i = 0; i <= 100 - selectedProvider.otherBip / 100; i = i + 10) {
+        marksList.push({
+          value: i,
+          label: `${i}%`,
+        });
+      }
+      setMaxValue(100 - selectedProvider.otherBip / 100);
+    } else {
+      for (let i = 0; i <= 100 - totalBip / 100; i = i + 10) {
+        marksList.push({
+          value: i,
+          label: `${i}%`,
+        });
+      }
+      setMaxValue(100 - totalBip / 100);
+    }
+
+    setMarks(marksList);
+  }, [totalBip, selectedProvider]);
 
   const handleChange = (event) => {
     setValue(event.target.value);
@@ -73,7 +51,8 @@ const SliderDelegation = forwardRef(({ onValueChange, defaultValue }, ref) => {
           value={value}
           ref={ref}
           getAriaValueText={valuetext}
-          step={10}
+          step={1}
+          max={maxValue}
           onChange={handleChange}
           marks={marks}
           valueLabelDisplay="on"

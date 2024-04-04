@@ -43,7 +43,6 @@ const Header = () => {
   const { address, chainId, isConnected } = useWeb3ModalAccount();
 
   const handleChange = (event, newValue) => {
-    console.log("dispatch", newValue);
     dispatch(changeNetwork(newValue));
   };
 

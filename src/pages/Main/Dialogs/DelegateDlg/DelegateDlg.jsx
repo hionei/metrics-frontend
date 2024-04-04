@@ -3,17 +3,17 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { Chip, TextField } from "@mui/material";
-import InputAdornment from "@mui/material/InputAdornment";
 import SliderDelegation from "./SliderDelegation";
 import ProviderSelector from "./ProviderSelector";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { isValidEthereumAddress } from "../../../../utils/helpers";
 import { useSelector } from "react-redux";
+import { SYMBOLS } from "../../../../config";
+import { useWeb3ModalAccount } from "@web3modal/ethers/react";
 
-const DelegateDlg = ({ open, handleClose, balance, onDelegate, loading, selectedProvider = undefined }) => {
+const DelegateDlg = ({ open, handleClose, balance, onDelegate, loading, delegatees, selectedProvider = undefined }) => {
   const inputElement = React.useRef();
   const providerSelectRef = React.useRef();
   const [_loading, setLoading] = React.useState(false);
@@ -24,12 +24,23 @@ const DelegateDlg = ({ open, handleClose, balance, onDelegate, loading, selected
   const [percentage, setPercentage] = React.useState(0);
 
   const providersInfo = useSelector((state) => state.providersInfo.data);
+  const [totalBip, setTotalBip] = React.useState(0);
   const [name, setName] = React.useState("");
+  const { chainId } = useWeb3ModalAccount();
+
+  React.useEffect(() => {
+    let sumBip = 0;
+    delegatees?.forEach((delegatee) => {
+      sumBip += Number(delegatee.bip);
+    });
+
+    setTotalBip(sumBip);
+  }, [delegatees]);
 
   React.useEffect(() => {
     if (providersInfo?.length > 0 && selectedProvider) {
       const rawname = providersInfo.filter(
-        (provider) => provider.address == selectedProvider?.addr && provider.chainId == "19"
+        (provider) => provider.address == selectedProvider?.addr && provider.chainId == chainId
       )[0]?.name;
       setName(rawname);
     }
@@ -73,7 +84,7 @@ const DelegateDlg = ({ open, handleClose, balance, onDelegate, loading, selected
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
       <DialogTitle id="alert-dialog-title" sx={{ fontWeight: 600 }}>
-        {"Delegate WSGB to ftso data providers"}
+        Delegate {SYMBOLS[chainId]} to ftso data providers
       </DialogTitle>
       <DialogContent sx={{ height: "300px", alignItems: "flex-start", gap: "1em" }}>
         <Chip
@@ -100,8 +111,8 @@ const DelegateDlg = ({ open, handleClose, balance, onDelegate, loading, selected
               <>
                 <ProviderSelector ref={providerSelectRef} onChange={onProviderChanged} />
                 {providerError == 1 && (
-                  <p class="mt-2 text-sm text-red-600 dark:text-red-500">
-                    <span class="font-medium">Note that!: </span> Invalid Address Format
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                    <span className="font-medium">Note that!: </span> Invalid Address Format
                   </p>
                 )}
               </>
@@ -112,10 +123,12 @@ const DelegateDlg = ({ open, handleClose, balance, onDelegate, loading, selected
               ref={inputElement}
               onValueChange={onValueChange}
               defaultValue={Number(selectedProvider?.bip) / 100 || 0}
+              totalBip={totalBip}
+              selectedProvider={selectedProvider}
             />
             {percentError == 1 && (
-              <p class="mt-2 text-sm text-red-600 dark:text-red-500">
-                <span class="font-medium">Note that!: </span> Can not be zero
+              <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                <span className="font-medium">Note that!: </span> Can not be zero
               </p>
             )}
           </div>

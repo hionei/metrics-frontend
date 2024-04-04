@@ -1,8 +1,11 @@
 import { Button } from "@mui/material";
+import { useWeb3ModalAccount } from "@web3modal/ethers/react";
 import React, { useState, forwardRef } from "react";
+import { WRAPSYMBOLS } from "../../../../config";
 
 const NumberInput = forwardRef(({ balance, onValueChange }, ref) => {
   const [value, setValue] = useState("");
+  const { chainId } = useWeb3ModalAccount();
 
   const handleInputChange = (event) => {
     const inputValue = event.target.value;
@@ -24,7 +27,9 @@ const NumberInput = forwardRef(({ balance, onValueChange }, ref) => {
   return (
     <div>
       <div className="flex justify-between items-center">
-        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">WSGB Amount to Send</label>
+        <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+          {WRAPSYMBOLS[chainId]} Amount to Send
+        </label>
         <Button onClick={onMaxClicked}>MAX</Button>
       </div>
 

@@ -10,6 +10,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import NumberInput from "./NumberInput";
 import LoadingButton from "@mui/lab/LoadingButton";
 import { isValidEthereumAddress } from "../../../../utils/helpers";
+import { WRAPSYMBOLS } from "../../../../config";
+import { useWeb3ModalAccount } from "@web3modal/ethers/react";
 
 const SendWSGBDlg = ({ open, handleClose, balance, onSendWSGB, loading }) => {
   const inputElement = React.useRef();
@@ -17,7 +19,7 @@ const SendWSGBDlg = ({ open, handleClose, balance, onSendWSGB, loading }) => {
   const [_loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(0);
   const [addressError, setAddressError] = React.useState(0);
-
+  const { chainId } = useWeb3ModalAccount();
   React.useEffect(() => {
     setLoading(loading);
   }, [loading]);
@@ -64,22 +66,20 @@ const SendWSGBDlg = ({ open, handleClose, balance, onSendWSGB, loading }) => {
   return (
     <Dialog open={open} onClose={handleClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
       <DialogTitle id="alert-dialog-title" sx={{ fontWeight: 600 }}>
-        {"Send WSGB tokens"}
+        Send {WRAPSYMBOLS[chainId]} tokens
       </DialogTitle>
       <DialogContent>
-        <DialogContentText id="alert-dialog-description">
-          <Chip
-            sx={{
-              height: "auto",
-              "& .MuiChip-label": {
-                display: "block",
-                whiteSpace: "normal",
-              },
-              fontSize: "0.9em",
-            }}
-            label="You can send WSGB tokens to recipient."
-          ></Chip>
-        </DialogContentText>
+        <Chip
+          sx={{
+            height: "auto",
+            "& .MuiChip-label": {
+              display: "block",
+              whiteSpace: "normal",
+            },
+            fontSize: "0.9em",
+          }}
+          label={`You can send ${WRAPSYMBOLS[chainId]} tokens to recipient.`}
+        ></Chip>
       </DialogContent>
       <DialogActions>
         <div className="flex flex-1 flex-col gap-10 p-4">
@@ -87,18 +87,18 @@ const SendWSGBDlg = ({ open, handleClose, balance, onSendWSGB, loading }) => {
             <NumberInput balance={balance} ref={inputElement} onValueChange={onValueChange} />
 
             {error == 1 && (
-              <p class="mt-2 text-sm text-red-600 dark:text-red-500">
-                <span class="font-medium">Note that!: </span> Exceed of your balance.
+              <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                <span className="font-medium">Note that!: </span> Exceed of your balance.
               </p>
             )}
             {error == 2 && (
-              <p class="mt-2 text-sm text-red-600 dark:text-red-500">
-                <span class="font-medium">Note that!: </span> Input amount of SGB
+              <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                <span className="font-medium">Note that!: </span> Input amount of SGB
               </p>
             )}
           </div>
           <div>
-            <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Recipient Address</label>
+            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Recipient Address</label>
             <input
               ref={addressElement}
               type="text"
@@ -107,8 +107,8 @@ const SendWSGBDlg = ({ open, handleClose, balance, onSendWSGB, loading }) => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             />
             {addressError == 1 && (
-              <p class="mt-2 text-sm text-red-600 dark:text-red-500">
-                <span class="font-medium">Note that!: </span> Invalid Address Format
+              <p className="mt-2 text-sm text-red-600 dark:text-red-500">
+                <span className="font-medium">Note that!: </span> Invalid Address Format
               </p>
             )}
           </div>

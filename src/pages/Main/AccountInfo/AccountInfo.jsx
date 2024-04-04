@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import IconButton from "@mui/material/IconButton";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import DelegateDlg from "../Dialogs/DelegateDlg";
+import { EXPLORER_URL, SYMBOLS, WRAPSYMBOLS } from "../../../config";
 
 const AccountInfo = ({
   curUserRewardAmount,
@@ -16,13 +17,16 @@ const AccountInfo = ({
   onWsgbUnwrapClicked,
   onWsgbSendClicked,
   onDelegateClicked,
+  onUnDelegateClicked,
   onAutoClaimClicked,
   onClaimRewardClicked,
   onFlareDropClaimClicked,
+  claimFlareDropAmount,
   balance,
   delegatees,
   wsgbBalance,
   onDelegate,
+  connectedExecutors,
   loading,
 }) => {
   const { address, chainId, isConnected } = useWeb3ModalAccount();
@@ -30,8 +34,9 @@ const AccountInfo = ({
   const [_wSGBBalance, setWSGBBalance] = useState(wsgbBalance);
   const [_curUserRewardAmountEther, setCurUserRewardAmountEther] = useState(0);
   const [_curUserClaimableAmountEther, setCurUserClaimableAmountEther] = useState(0);
-  const symbol = useSelector((state) => state.network.symbol);
+  const net = useSelector((state) => state.network.value);
   const providerInfo = useSelector((state) => state.providersInfo.data);
+  const registeredExecutors = useSelector((state) => state.executorsInfo.data);
   const [sumOfBip, setSumOfBip] = useState(0);
   const [isOpenDelegateDlg, setIsOpenDelegateDlg] = useState(false);
   const [selectedAddr, setSelectedAddr] = useState("");
@@ -65,8 +70,6 @@ const AccountInfo = ({
     setSelectedAddr(addr);
     setSelectedAddrBip(bip);
     setSelectedAddrOtherBip(otherBip);
-
-    console.log(addr, bip, otherBip);
     setIsOpenDelegateDlg(true);
   };
 
@@ -84,6 +87,8 @@ const AccountInfo = ({
         loading={loading}
         selectedProvider={{ addr: selectedAddr, bip: selectedAddrBip, otherBip: selectedAddrOtherBip }}
       />
+      {!isConnected && <div className="w-full h-full bg-[#ffffff3b] absolute z-[100]"></div>}
+
       <div className="flex flex-1 flex-col rounded border p-5 relative pt-10 gap-1 justify-around">
         <div className="mb-5">
           <h1 className="text-2xl font-bold">Welcome to Flare Universe!</h1>
@@ -95,14 +100,20 @@ const AccountInfo = ({
               <label>Account Address:</label> <span className="pl-6">{address}</span>
             </div>
             <div>
-              <Button variant="outlined" sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}>
+              <Button
+                variant="outlined"
+                sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                onClick={() => {
+                  window.open(EXPLORER_URL[chainId] + "address/" + address, "_blank").focus();
+                }}
+              >
                 View in Explorer
               </Button>
             </div>
           </div>
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
             <div>
-              <label>SGB Balance: </label>
+              <label>{SYMBOLS[chainId]} Balance: </label>
               <span className="pl-6"> {Number(_balance).toFixed(2)}</span>
             </div>
             <div className="flex gap-1">
@@ -124,7 +135,7 @@ const AccountInfo = ({
           </div>
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
             <div>
-              <label>WSGB Balance: </label>
+              <label>{WRAPSYMBOLS[chainId]} Balance: </label>
               <span className="pl-6">{Number(_wSGBBalance).toFixed(2)}</span>
             </div>
             <div className="flex gap-1">
@@ -151,7 +162,7 @@ const AccountInfo = ({
                 return (
                   <div key={"deletee" + index}>
                     {`${
-                      providerInfo.filter((provider) => provider.address == delegatee.address && provider.chainId == "19")[0]
+                      providerInfo.filter((provider) => provider.address == delegatee.address && provider.chainId == chainId)[0]
                         ?.name || ""
                     } - ${delegatee.address}`}{" "}
                     {`(${Number(delegatee.bip) / 100}%)`}
@@ -167,17 +178,44 @@ const AccountInfo = ({
               })}
             </div>
             <div>
-              <Button
-                variant="outlined"
-                sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
-                onClick={onDelegateClicked}
-              >
-                Delegate
-              </Button>
+              {delegatees.length >= 2 ? (
+                <Button
+                  variant="outlined"
+                  sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                  onClick={onUnDelegateClicked}
+                >
+                  Undelegate All
+                </Button>
+              ) : (
+                <Button
+                  variant="outlined"
+                  sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                  onClick={onDelegateClicked}
+                >
+                  Delegate
+                </Button>
+              )}
             </div>
           </div>
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
-            <div className="">Auto-claim (fee: 0.1 {symbol}) </div>
+            <div className="">Auto-claim (fee: 0 {SYMBOLS[chainId]}) </div>
+            <div className="flex flex-col">
+              {connectedExecutors.map((executor, index) => {
+                return (
+                  <label key={executor + index}>
+                    {executor} :
+                    {registeredExecutors.filter((reEx) => reEx.address == executor).length > 0 ? (
+                      <span>
+                        (Registered Fee: {registeredExecutors.filter((reEx) => reEx.address == executor)[0]?.fee}{" "}
+                        {SYMBOLS[chainId]})
+                      </span>
+                    ) : (
+                      "(Manual)"
+                    )}
+                  </label>
+                );
+              })}
+            </div>
             <div>
               <Button
                 variant="outlined"
@@ -194,29 +232,83 @@ const AccountInfo = ({
           </div>
         </div>
 
-        <div className="flex justify-between items-center bg-[#0b6bcb] p-5 rounded-md">
-          <div>
-            <h2 className="text-white">Claim your delegation reward manually</h2>
-          </div>
-          <div className="gap-1 flex justify-end items-center">
-            <div className="flex-1">
-              {isRewardClaimable ? (
-                <Button
-                  color="danger"
-                  onClick={onClaimRewardClicked}
-                  variant="outlined"
-                  sx={{ bgcolor: "white", borderRadius: "2em" }}
-                >
-                  Claim {_curUserClaimableAmountEther} {symbol}
-                </Button>
-              ) : (
-                <Button color="danger" variant="outlined" disabled sx={{ bgcolor: "white", borderRadius: "2em" }}>
-                  Pending {_curUserRewardAmountEther}
-                </Button>
-              )}
+        {chainId == 14 && (
+          <div className="flex justify-between items-center bg-[#0b6bcb] p-5 rounded-md">
+            <div className="flex flex-col gap-1">
+              <div>
+                <h2 className="text-white">Claim your delegation reward manually</h2>
+              </div>
+              <div className="gap-1 flex justify-end items-center">
+                <div className="flex-1">
+                  {isRewardClaimable ? (
+                    <Button
+                      color="danger"
+                      onClick={onClaimRewardClicked}
+                      variant="outlined"
+                      sx={{ bgcolor: "white", borderRadius: "2em" }}
+                    >
+                      Claim {_curUserClaimableAmountEther} {SYMBOLS[chainId]}
+                    </Button>
+                  ) : (
+                    <Button color="danger" variant="outlined" disabled sx={{ bgcolor: "white", borderRadius: "2em" }}>
+                      Pending {_curUserRewardAmountEther}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div>
+                <h2 className="text-white">Claim your FlareDrop distribution</h2>
+              </div>
+              <div className="gap-1 flex justify-end items-center">
+                <div className="flex-1">
+                  {Number(claimFlareDropAmount) != 0 ? (
+                    <Button
+                      color="danger"
+                      onClick={onFlareDropClaimClicked}
+                      variant="outlined"
+                      sx={{ bgcolor: "white", borderRadius: "2em" }}
+                    >
+                      Claim {claimFlareDropAmount} {SYMBOLS[chainId]}
+                    </Button>
+                  ) : (
+                    <Button color="danger" variant="outlined" disabled sx={{ bgcolor: "white", borderRadius: "2em" }}>
+                      Nothing to claim
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {chainId == 19 && (
+          <div className="flex justify-between items-center bg-[#0b6bcb] p-5 rounded-md">
+            <div>
+              <h2 className="text-white">Claim your delegation reward manually</h2>
+            </div>
+            <div className="gap-1 flex justify-end items-center">
+              <div className="flex-1">
+                {isRewardClaimable ? (
+                  <Button
+                    color="danger"
+                    onClick={onClaimRewardClicked}
+                    variant="outlined"
+                    sx={{ bgcolor: "white", borderRadius: "2em" }}
+                  >
+                    Claim {_curUserClaimableAmountEther} {SYMBOLS[chainId]}
+                  </Button>
+                ) : (
+                  <Button color="danger" variant="outlined" disabled sx={{ bgcolor: "white", borderRadius: "2em" }}>
+                    Pending {_curUserRewardAmountEther}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

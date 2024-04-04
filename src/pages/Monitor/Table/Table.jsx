@@ -316,7 +316,7 @@ export default function EnhancedTable({ rows, totalVotePower }) {
                     <TableCell align="right">{Number(row?.successRate)}%</TableCell>
                     <TableCell align="right">{row?.curRewardRate}</TableCell>
                     <TableCell align="right">{row?.prevRewardRate}</TableCell>
-                    <TableCell align="right">{Number(row?.balance).toFixed(2)}</TableCell>
+                    <TableCell align="right">{Number(Number(row?.balance).toFixed(2)).toLocaleString()}</TableCell>
                     <TableCell align="right">{row?.availability}</TableCell>
                     <TableCell align="right">{Number(row?.totalEpochReward).toLocaleString()}</TableCell>
                     <TableCell align="right">{Number(row?.currentEpochReward).toLocaleString()}</TableCell>

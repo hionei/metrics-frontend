@@ -4,37 +4,35 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 // import routes from "./routes";
 import Page404 from "./pages/Page404";
 import Main from "./pages/Main";
-import Delegators from "./pages/Delegators";
-// import Metrics from "./pages/Metrics";
 import Monitor from "./pages/Monitor";
 import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
-import { RPC_URL, RPC_URL_FLARE } from "./config";
+import { RPC_URL, EXPLORER_URL } from "./config";
 
-const projectId = "YOUR_PROJECT_ID";
+const projectId = "Flare_universe_911";
 
 // 2. Set chains
 const songbirdNet = {
   chainId: 19,
   name: "Songbird",
   currency: "SGB",
-  explorerUrl: "https://songbird-explorer.flare.network",
-  rpcUrl: RPC_URL,
+  explorerUrl: EXPLORER_URL[19],
+  rpcUrl: RPC_URL[19],
 };
 
 const flareNet = {
   chainId: 14,
   name: "Flare",
   currency: "FLR",
-  explorerUrl: "https://flare-explorer.flare.network/",
-  rpcUrl: RPC_URL_FLARE,
+  explorerUrl: EXPLORER_URL[14],
+  rpcUrl: RPC_URL[14],
 };
 
 // 3. Create a metadata object
 const metadata = {
-  name: "My Website",
-  description: "My Website description",
-  url: "https://mywebsite.com", // origin must match your domain & subdomain
-  icons: ["https://avatars.mywebsite.com/"],
+  name: "Flare Universe",
+  description: "Flare Universe encourage users to manage their assets easily",
+  url: "https://flareuniverse.com", // origin must match your domain & subdomain
+  icons: ["https://avatars.flareuniverse.com/"],
 };
 
 // 4. Create Ethers config
@@ -65,7 +63,6 @@ function App() {
       errorElement: <Page404 />,
       children: [
         { path: "/", element: <Main /> },
-        { path: "/delegators", element: <Delegators /> },
         { path: "/metrics", element: <Monitor /> },
       ],
     },

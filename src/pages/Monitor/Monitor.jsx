@@ -9,6 +9,7 @@ import { truncateString } from "../../utils/helpers";
 import Table from "./Table";
 import Web3 from "web3";
 import Switcher from "../../components/Switcher";
+import { useWeb3ModalAccount } from "@web3modal/ethers/react";
 
 function createData(name, calories, fat, carbs, protein) {
   return { name, calories, fat, carbs, protein };
@@ -30,44 +31,48 @@ const Monitor = () => {
   const [endsIn, setEndsIn] = useState(0);
   const [totalVP, setTotalVP] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [checked, setChecked] = useState(true);
 
   useEffect(() => {
     const getSongbirdProvidersInfo = async () => {
-      const rawResult = await axios.get(API_URL + "/songbird/providers");
+      try {
+        console.log(API_URL[19] + "/providers");
+        const rawResult = await axios.get(API_URL[19] + "/providers");
+        console.log(rawResult);
+        setEpochID(rawResult.data.epochId);
+        setEndsIn(Number(rawResult.data.endsIn));
+        setTotalVP(Math.round(Web3.utils.fromWei(rawResult.data.totalVotePower, "ether")));
+        setDuration(Number(rawResult.data.duration));
+        const intProvidersInfo = rawResult.data.providersInfo?.map((provider) => {
+          return {
+            ...provider,
+            successRate: Number(provider.successRate),
+            balance: Number(provider.balance),
+            availability: Number(provider.availability),
+            totalEpochReward: Math.round(Web3.utils.fromWei(provider.totalEpochReward, "ether")),
+            currentVotePower: Math.round(Web3.utils.fromWei(provider.currentVotePower, "ether")),
+            lockedVotePower: Math.round(Web3.utils.fromWei(provider.lockedVotePower, "ether")),
+            currentEpochReward: provider.currentEpochReward
+              ? Math.round(Web3.utils.fromWei(provider.currentEpochReward, "ether"))
+              : 0,
+          };
+        });
+
+        const listedProvidersInfo = intProvidersInfo?.filter((provider) => provider.listed);
+        setProvidersInfo(listedProvidersInfo || []);
+        setOriginalProvidersInfo(intProvidersInfo || []);
+      } catch (err) {
+        console.log(err.message);
+      }
+    };
+
+    const getFlareProvidersInfo = async () => {
+      const rawResult = await axios.get(API_URL[14] + "/providers");
       console.log(rawResult);
+
       setEpochID(rawResult.data.epochId);
       setEndsIn(Number(rawResult.data.endsIn));
       setTotalVP(Math.round(Web3.utils.fromWei(rawResult.data.totalVotePower, "ether")));
       setDuration(Number(rawResult.data.duration));
-      const intProvidersInfo = rawResult.data.providersInfo?.map((provider) => {
-        return {
-          ...provider,
-          successRate: Number(provider.successRate),
-          balance: Number(provider.balance),
-          availability: Number(provider.availability),
-          totalEpochReward: Math.round(Web3.utils.fromWei(provider.totalEpochReward, "ether")),
-          currentVotePower: Math.round(Web3.utils.fromWei(provider.currentVotePower, "ether")),
-          lockedVotePower: Math.round(Web3.utils.fromWei(provider.lockedVotePower, "ether")),
-          currentEpochReward: provider.currentEpochReward
-            ? Math.round(Web3.utils.fromWei(provider.currentEpochReward, "ether"))
-            : 0,
-        };
-      });
-
-      const listedProvidersInfo = intProvidersInfo?.filter((provider) => provider.listed);
-      setProvidersInfo(listedProvidersInfo || []);
-      setOriginalProvidersInfo(intProvidersInfo || []);
-    };
-
-    const getFlareProvidersInfo = async () => {
-      const rawResult = await axios.get(API_URL + "/flare/providers");
-      console.log(rawResult);
-
-      setEpochID(rawResult.data.epochId);
-      setEndsIn(rawResult.data.endsIn);
-      setTotalVP(rawResult.data.totalVotePower);
-      setDuration(rawResult.data.duration);
       const intProvidersInfo = rawResult.data.providersInfo?.map((provider) => {
         return {
           ...provider,
@@ -82,6 +87,7 @@ const Monitor = () => {
       });
 
       const listedProvidersInfo = intProvidersInfo?.filter((provider) => provider.listed);
+
       setProvidersInfo(listedProvidersInfo || []);
       setOriginalProvidersInfo(intProvidersInfo || []);
     };
