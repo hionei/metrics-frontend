@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
     <>
-      <div className="my-3">© 2024 God TSO. All Rights Reserved.</div>
+      <div className="my-3">© 2024 Flare Universe. All Rights Reserved.</div>
     </>
   );
 };

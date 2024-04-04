@@ -15,6 +15,7 @@ import { truncateString } from "../../utils/helpers";
 import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { changeNetwork } from "../../store/reducers/networkSlice";
+import { useNavigate } from "react-router-dom";
 
 const options = [
   { value: 1, label: "Songbird", src: "/static/images/SGB.svg" },
@@ -41,6 +42,7 @@ const Header = () => {
   const location = useLocation();
   const dispatch = useDispatch();
   const { address, chainId, isConnected } = useWeb3ModalAccount();
+  const navigate = useNavigate();
 
   const handleChange = (event, newValue) => {
     dispatch(changeNetwork(newValue));
@@ -55,10 +57,22 @@ const Header = () => {
         </Typography>
       </div>
       <div className="flex-1 flex gap-4 justify-center">
-        <Link level="title-lg" href="/" underline={location.pathname == "/" ? "always" : "none"}>
+        <Link
+          level="title-lg"
+          onClick={() => {
+            navigate("/");
+          }}
+          underline={location.pathname == "/" ? "always" : "none"}
+        >
           Account
         </Link>
-        <Link level="title-lg" href="/metrics" underline={location.pathname == "/metrics" ? "always" : "none"}>
+        <Link
+          level="title-lg"
+          onClick={() => {
+            navigate("/metrics");
+          }}
+          underline={location.pathname == "/metrics" ? "always" : "none"}
+        >
           Metrics
         </Link>
       </div>
