@@ -9,7 +9,7 @@ export const DECIMAL = 5;
 export const TSONAME = "Flare Universe";
 export const SUBQUERY_URL = "http://173.249.53.155/";
 // export const API_URL = { 19: "http://localhost:8000", 14: "http://localhost:8001" };
-export const API_URL = { 19: "http://66.94.118.110:8000", 14: "http://142.132.222.71:8001" };
+export const API_URL = { 19: "https://66.94.118.110:8080/providers", 14: "http://142.132.222.71:8001" };
 
 export const AUTO_CLAIM_ADDRESS = "0xBe7AD281aEF0405a252b12D5251e99c95f58799a";
 
