@@ -31,6 +31,7 @@ const Monitor = () => {
   const [endsIn, setEndsIn] = useState(0);
   const [totalVP, setTotalVP] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [defaultChecked, setDefaultChecked] = useState(true);
 
   useEffect(() => {
     const getSongbirdProvidersInfo = async () => {
@@ -93,16 +94,19 @@ const Monitor = () => {
     };
 
     if (networkId == 2) {
+      setDefaultChecked(true);
       getFlareProvidersInfo();
     }
 
     if (networkId == 1) {
+      setDefaultChecked(true);
       getSongbirdProvidersInfo();
     }
   }, [networkId]);
 
   const handleChange = (event) => {
     const checked = event.target.checked;
+    setDefaultChecked(checked);
     if (checked) {
       setProvidersInfo((state) => {
         const newState = state.filter((provider) => {
@@ -136,7 +140,7 @@ const Monitor = () => {
         </div>
       </div>
       <div className="text-start pl-5">
-        <Switcher handleChange={handleChange} />
+        <Switcher handleChange={handleChange} defaultChecked={defaultChecked} />
       </div>
 
       <Table rows={providersInfo} totalVotePower={totalVP} />
