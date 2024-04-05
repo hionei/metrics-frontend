@@ -580,9 +580,9 @@ const Main = () => {
   return (
     <>
       <div className="w-full px-[10%]">
-        <div>
+        {/* <div>
           <FTSOInfo epochID={epochID} endsIn={endsIn} duration={duration} />
-        </div>
+        </div> */}
 
         <div className="flex gap-2 pt-8 relative">
           {/* <RewardInfo currentReward={currentReward} /> */}
