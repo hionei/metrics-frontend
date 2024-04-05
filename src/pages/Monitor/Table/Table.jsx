@@ -202,6 +202,10 @@ export default function EnhancedTable({ rows, totalVotePower }) {
   const [dlgStatus, setDlgStatus] = React.useState(false);
   const [selectedProviderInfo, setSelectedProviderInfo] = React.useState(null);
 
+  React.useEffect(() => {
+    console.log(rows);
+  }, [rows]);
+
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -238,19 +242,6 @@ export default function EnhancedTable({ rows, totalVotePower }) {
 
   const parentHandleClose = () => {
     setDlgStatus(false);
-  };
-
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-  const handleChangeDense = (event) => {
-    setDense(event.target.checked);
   };
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
@@ -331,8 +322,14 @@ export default function EnhancedTable({ rows, totalVotePower }) {
                     <TableCell align="right">{Object.keys(row?.whitelist).length}</TableCell>
                     <TableCell align="right">
                       {Number(row?.fee.fee) / 100}% <br />
-                      {row?.fee.scheduledFee.fee != "" &&
-                        `(${Number(row?.fee.scheduledFee.fee) / 100}% from ${row?.fee.scheduledFee.from})`}
+                      {row?.fee.scheduledFee.length > 0 &&
+                        row?.fee.scheduledFee.map((feeInfo) => {
+                          return (
+                            <span>
+                              ({Number(feeInfo.fee) / 100}% from {feeInfo.from}) &nbsp;
+                            </span>
+                          );
+                        })}
                     </TableCell>
                   </TableRow>
                 );
