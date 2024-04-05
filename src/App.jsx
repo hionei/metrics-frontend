@@ -68,10 +68,6 @@ function App() {
     },
   ]);
 
-  const { result } = useSeo();
-
-  console.log(result());
-
   return (
     <>
       <BetterHelmet
