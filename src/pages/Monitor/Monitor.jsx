@@ -3,25 +3,10 @@ import axios from "axios";
 import { API_URL } from "../../config";
 import { useSelector } from "react-redux";
 import Chip from "@mui/joy/Chip";
-import Sun from "@mui/icons-material/LightMode";
 import TimeLeft from "../../components/TimeLeft";
-import { truncateString } from "../../utils/helpers";
 import Table from "./Table";
 import Web3 from "web3";
 import Switcher from "../../components/Switcher";
-import { useWeb3ModalAccount } from "@web3modal/ethers/react";
-
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-  createData("Frozen yoghurt", 159, 6.0, 24, 4.0),
-  createData("Ice cream sandwich", 237, 9.0, 37, 4.3),
-  createData("Eclair", 262, 16.0, 24, 6.0),
-  createData("Cupcake", 305, 3.7, 67, 4.3),
-  createData("Gingerbread", 356, 16.0, 49, 3.9),
-];
 
 const Monitor = () => {
   const networkId = useSelector((state) => state.network.value);
@@ -36,9 +21,7 @@ const Monitor = () => {
   useEffect(() => {
     const getSongbirdProvidersInfo = async () => {
       try {
-        console.log(API_URL[19] + "/providers");
         const rawResult = await axios.get(API_URL[19] + "/providers");
-        console.log(rawResult);
         setEpochID(rawResult.data.epochId);
         setEndsIn(Number(rawResult.data.endsIn));
         setTotalVP(Math.round(Web3.utils.fromWei(rawResult.data.totalVotePower, "ether")));
@@ -68,12 +51,11 @@ const Monitor = () => {
 
     const getFlareProvidersInfo = async () => {
       const rawResult = await axios.get(API_URL[14] + "/providers");
-      console.log(rawResult);
-
       setEpochID(rawResult.data.epochId);
       setEndsIn(Number(rawResult.data.endsIn));
       setTotalVP(Math.round(Web3.utils.fromWei(rawResult.data.totalVotePower, "ether")));
       setDuration(Number(rawResult.data.duration));
+
       const intProvidersInfo = rawResult.data.providersInfo?.map((provider) => {
         return {
           ...provider,

@@ -4,7 +4,6 @@ import App from "./App.jsx";
 import "./index.css";
 import store from "./store";
 import { Provider } from "react-redux";
-import { StyledEngineProvider } from "@mui/material/styles";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

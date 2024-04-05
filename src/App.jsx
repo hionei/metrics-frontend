@@ -1,12 +1,12 @@
 import "./App.css";
 import Layout from "./layouts/Layout";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-// import routes from "./routes";
 import Page404 from "./pages/Page404";
 import Main from "./pages/Main";
 import Monitor from "./pages/Monitor";
 import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
 import { RPC_URL, EXPLORER_URL } from "./config";
+import { BetterHelmet, useSeo } from "@limeyfy/react-seo";
 
 const projectId = "prj_gMcJ7AZpBwfD7jJhQ2ORUqST2enE";
 
@@ -68,7 +68,24 @@ function App() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  const { result } = useSeo();
+
+  console.log(result());
+
+  return (
+    <>
+      <BetterHelmet
+        title="Flare Universe"
+        subTitle="FTSO Data Providers Metrics for Songbird and Flare network"
+        url="https://flareuniverse.xyz"
+        keywords="Flare, Universe, Songbird, songbird, flare, ftso, oracle, system, SGB, FLR, monitor, metrics, assets, delegate, data providers,"
+        description="This is a website (web3 dapp) that monitors ftso data providers's status supported by Flare Universe. And token holders can manage their assets easily including sending, wraping, delegating and auto-claiming etc. This is based on Songbird and Flare Blockchain Ecosystem"
+      >
+        {/* <meta name="og:country-name" content="United States" /> */}
+      </BetterHelmet>
+      <RouterProvider router={router} />;
+    </>
+  );
 }
 
 export default App;

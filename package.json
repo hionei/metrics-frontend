@@ -13,6 +13,7 @@
     "@apollo/client": "^3.9.6",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
+    "@limeyfy/react-seo": "^2.0.2",
     "@mui/icons-material": "^5.15.13",
     "@mui/joy": "^5.0.0-beta.31",
     "@mui/lab": "^5.0.0-alpha.169",
