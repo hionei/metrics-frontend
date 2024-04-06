@@ -99,13 +99,17 @@ const Main = () => {
       return 0;
     }
 
-    const ethersProvider = new BrowserProvider(walletProvider);
-    const balance = await ethersProvider.getBalance(address);
-    setBalance(formatUnits(balance, 18));
-    const signer = await ethersProvider.getSigner();
-    const WSGBContract = new Contract(WSGBAddress[chainId], WSGBAbi, signer);
-    const WSGBBalance = await WSGBContract.balanceOf(address);
-    setWSGBBalance(formatUnits(WSGBBalance, 18));
+    try {
+      const ethersProvider = new BrowserProvider(walletProvider);
+      const balance = await ethersProvider.getBalance(address);
+      setBalance(formatUnits(balance, 18));
+      const signer = await ethersProvider.getSigner();
+      const WSGBContract = new Contract(WSGBAddress[chainId], WSGBAbi, signer);
+      const WSGBBalance = await WSGBContract.balanceOf(address);
+      setWSGBBalance(formatUnits(WSGBBalance, 18));
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   useEffect(() => {
@@ -120,91 +124,91 @@ const Main = () => {
     setIsRewardClaimable(false);
     getBalance();
     const promise = async () => {
-      const web3 = getWeb3(walletProvider);
+      try {
+        const web3 = getWeb3(walletProvider);
 
-      const priceSubmitterContract = await getWeb3Contract(
-        web3,
-        SUBMITTER_CONTRACT_ADDRESS,
-        "PriceSubmitter",
-        "contracts/genesis/implementation/PriceSubmitter.sol/PriceSubmitter.json"
-      );
-
-      const ftsoManagerAddress = await priceSubmitterContract.methods.getFtsoManager().call();
-
-      const ftsoManagerContract = await getWeb3Contract(
-        web3,
-        ftsoManagerAddress,
-        "FtsoManager",
-        "contracts/ftso/implementation/FtsoManager.sol/FtsoManager.json"
-      );
-
-      const rewardEpochID = await ftsoManagerContract.methods.getCurrentRewardEpoch().call();
-      const rewardEpochDurationSeconds = await ftsoManagerContract.methods.rewardEpochDurationSeconds().call();
-      const ftsoRewardManagerAddress = await ftsoManagerContract.methods.rewardManager().call();
-      const currentRewardEpochEnds = await ftsoManagerContract.methods.currentRewardEpochEnds().call();
-
-      const ftsoRewardManagerContract = await getWeb3Contract(
-        web3,
-        ftsoRewardManagerAddress,
-        "FtsoRewardManager",
-        "contracts/tokenPools/implementation/FtsoRewardManager.sol/FtsoRewardManager.json"
-      );
-
-      if (chainId == 14) {
-        const distributionToDelegatorsContract = await getWeb3Contract(
+        const priceSubmitterContract = await getWeb3Contract(
           web3,
-          DISTRIBUTION_CONTRACT_ADDRESS,
-          "DistributionToDelegators",
-          "contracts/tokenPools/implementation/DistributionToDelegators.sol/DistributionToDelegators.json"
+          SUBMITTER_CONTRACT_ADDRESS,
+          "PriceSubmitter",
+          "contracts/genesis/implementation/PriceSubmitter.sol/PriceSubmitter.json"
         );
 
-        setDTDContract({ contract: distributionToDelegatorsContract, address: DISTRIBUTION_CONTRACT_ADDRESS });
+        const ftsoManagerAddress = await priceSubmitterContract.methods.getFtsoManager().call();
 
-        const months = await distributionToDelegatorsContract.methods.getClaimableMonths().call();
-        const curMonth = await distributionToDelegatorsContract.methods.getCurrentMonth().call();
-        setCurrentMonth(Number(curMonth));
-        let sumOfFlareDropReward = 0;
-        let startMonth = Number(months[0]);
-        let endMonth = Number(months[1]);
+        const ftsoManagerContract = await getWeb3Contract(
+          web3,
+          ftsoManagerAddress,
+          "FtsoManager",
+          "contracts/ftso/implementation/FtsoManager.sol/FtsoManager.json"
+        );
 
-        let monthsIntList = [];
-        for (let i = startMonth; i <= endMonth; i++) {
-          const amount = await distributionToDelegatorsContract.methods.getClaimableAmount(i).call();
-          const amountEther = web3.utils.fromWei(amount, "ether");
-          monthsIntList.push(Number(i));
-          sumOfFlareDropReward += Number(amountEther);
+        const rewardEpochID = await ftsoManagerContract.methods.getCurrentRewardEpoch().call();
+        const rewardEpochDurationSeconds = await ftsoManagerContract.methods.rewardEpochDurationSeconds().call();
+        const ftsoRewardManagerAddress = await ftsoManagerContract.methods.rewardManager().call();
+        const currentRewardEpochEnds = await ftsoManagerContract.methods.currentRewardEpochEnds().call();
+
+        const ftsoRewardManagerContract = await getWeb3Contract(
+          web3,
+          ftsoRewardManagerAddress,
+          "FtsoRewardManager",
+          "contracts/tokenPools/implementation/FtsoRewardManager.sol/FtsoRewardManager.json"
+        );
+
+        if (chainId == 14) {
+          const distributionToDelegatorsContract = await getWeb3Contract(
+            web3,
+            DISTRIBUTION_CONTRACT_ADDRESS,
+            "DistributionToDelegators",
+            "contracts/tokenPools/implementation/DistributionToDelegators.sol/DistributionToDelegators.json"
+          );
+
+          setDTDContract({ contract: distributionToDelegatorsContract, address: DISTRIBUTION_CONTRACT_ADDRESS });
+
+          const months = await distributionToDelegatorsContract.methods.getClaimableMonths().call();
+          const curMonth = await distributionToDelegatorsContract.methods.getCurrentMonth().call();
+          setCurrentMonth(Number(curMonth));
+          let sumOfFlareDropReward = 0;
+          let startMonth = Number(months[0]);
+          let endMonth = Number(months[1]);
+
+          let monthsIntList = [];
+          for (let i = startMonth; i <= endMonth; i++) {
+            const amount = await distributionToDelegatorsContract.methods.getClaimableAmount(i).call();
+            const amountEther = web3.utils.fromWei(amount, "ether");
+            monthsIntList.push(Number(i));
+            sumOfFlareDropReward += Number(amountEther);
+          }
+          setFlareDropReward(sumOfFlareDropReward);
+          setFlareDropMonths(monthsIntList);
         }
-        setFlareDropReward(sumOfFlareDropReward);
-        setFlareDropMonths(monthsIntList);
-      }
 
-      setFtsoRewardManagerContract({ contract: ftsoRewardManagerContract, address: ftsoRewardManagerAddress });
+        setFtsoRewardManagerContract({ contract: ftsoRewardManagerContract, address: ftsoRewardManagerAddress });
 
-      const claimSetupManagerAddress = await ftsoRewardManagerContract.methods.claimSetupManager().call();
+        const claimSetupManagerAddress = await ftsoRewardManagerContract.methods.claimSetupManager().call();
 
-      const claimSetupManagerContract = await getWeb3Contract(
-        web3,
-        claimSetupManagerAddress,
-        "ClaimSetupManager",
-        "contracts/claimSetupManager/ClaimSetupManager.json"
-      );
+        const claimSetupManagerContract = await getWeb3Contract(
+          web3,
+          claimSetupManagerAddress,
+          "ClaimSetupManager",
+          "contracts/claimSetupManager/ClaimSetupManager.json"
+        );
 
-      setCSMContract({ contract: claimSetupManagerContract, address: claimSetupManagerAddress });
+        setCSMContract({ contract: claimSetupManagerContract, address: claimSetupManagerAddress });
 
-      const rawResult = await claimSetupManagerContract.methods.getRegisteredExecutors(0, 10).call();
-      let executersInfo = [];
-      for (let executerAddr of rawResult[0]) {
-        const feeWei = await claimSetupManagerContract.methods.getExecutorCurrentFeeValue(executerAddr).call();
-        const fee = web3.utils.fromWei(feeWei, "ether");
-        executersInfo.push({ address: executerAddr, fee: fee });
-      }
+        const rawResult = await claimSetupManagerContract.methods.getRegisteredExecutors(0, 10).call();
+        let executersInfo = [];
+        for (let executerAddr of rawResult[0]) {
+          const feeWei = await claimSetupManagerContract.methods.getExecutorCurrentFeeValue(executerAddr).call();
+          const fee = web3.utils.fromWei(feeWei, "ether");
+          executersInfo.push({ address: executerAddr, fee: fee });
+        }
 
-      dispatch(setExecutorsInfo(executersInfo));
+        dispatch(setExecutorsInfo(executersInfo));
 
-      const _connectedExecutors = await claimSetupManagerContract.methods.claimExecutors(address).call();
-      setConnectedExecutors(_connectedExecutors);
+        const _connectedExecutors = await claimSetupManagerContract.methods.claimExecutors(address).call();
+        setConnectedExecutors(_connectedExecutors);
 
-      try {
         const unClaimedEpochs = await ftsoRewardManagerContract.methods.getEpochsWithUnclaimedRewards(address).call();
         let totalReward = new BigNumber(0);
 
