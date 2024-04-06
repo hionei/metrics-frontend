@@ -259,6 +259,7 @@ const Main = () => {
         const endsin = Number(currentRewardEpochEnds) - currentUnixTime();
         setEndsIn(endsin);
       } catch (err) {
+        console.log("hererererererere");
         console.log(err);
       }
     };
