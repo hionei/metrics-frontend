@@ -133,8 +133,11 @@ const Main = () => {
           "PriceSubmitter",
           "contracts/genesis/implementation/PriceSubmitter.sol/PriceSubmitter.json"
         );
+        console.log("Price Submitter,", priceSubmitterContract);
 
         const ftsoManagerAddress = await priceSubmitterContract.methods.getFtsoManager().call();
+
+        console.log("Ftsomanageraddress", ftsoManagerAddress);
 
         const ftsoManagerContract = await getWeb3Contract(
           web3,
@@ -143,10 +146,14 @@ const Main = () => {
           "contracts/ftso/implementation/FtsoManager.sol/FtsoManager.json"
         );
 
+        console.log("FtsomanagerContract", ftsoManagerContract);
+
         const rewardEpochID = await ftsoManagerContract.methods.getCurrentRewardEpoch().call();
         const rewardEpochDurationSeconds = await ftsoManagerContract.methods.rewardEpochDurationSeconds().call();
         const ftsoRewardManagerAddress = await ftsoManagerContract.methods.rewardManager().call();
         const currentRewardEpochEnds = await ftsoManagerContract.methods.currentRewardEpochEnds().call();
+
+        console.log("Complex info", rewardEpochID, rewardEpochDurationSeconds, ftsoRewardManagerAddress, currentRewardEpochEnds);
 
         const ftsoRewardManagerContract = await getWeb3Contract(
           web3,
