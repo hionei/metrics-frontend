@@ -127,6 +127,8 @@ const Main = () => {
       try {
         const web3 = getWeb3(walletProvider);
 
+        console.log("WEB#", web3);
+
         const priceSubmitterContract = await getWeb3Contract(
           web3,
           SUBMITTER_CONTRACT_ADDRESS,
