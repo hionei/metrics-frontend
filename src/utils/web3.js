@@ -1,6 +1,12 @@
 import Web3 from "web3";
 import { RPC_URL } from "../config";
 import fs from "fs";
+import ClaimSetupManager from "../abi/ClaimSetupManager";
+import DistributionToDelegators from "../abi/DistributionToDelegators";
+import FtsoManager from "../abi/FtsoManager";
+import FtsoRewardManager from "../abi/FtsoRewardManager";
+import PriceSubmitter from "../abi/PriceSubmitter";
+import WNat from "../abi/WNat";
 
 export const getWeb3 = (provider = undefined) => {
   const web3 = new Web3(provider || new Web3.providers.HttpProvider(RPC_URL[14]));
@@ -17,9 +23,36 @@ export async function getAbi(abiPath) {
   return abi;
 }
 
-export async function getWeb3Contract(web3, address, name, abiPath) {
-  // let abiPath = await relativeContractABIPathForContractName(name);
-  const abi = await getAbi(`artifacts/${abiPath}`);
+export async function getWeb3Contract(web3, address, name) {
+  let abi = null;
+  switch (name) {
+    case "ClaimSetupManager":
+      abi = ClaimSetupManager;
+      break;
+    case "DistributionToDelegators":
+      abi = DistributionToDelegators;
+      break;
+
+    case "FtsoManager":
+      abi = FtsoManager;
+      break;
+    case "FtsoRewardManager":
+      abi = FtsoRewardManager;
+      break;
+    case "PriceSubmitter":
+      abi = PriceSubmitter;
+      break;
+    case "WNat":
+      abi = WNat;
+      break;
+    default:
+      break;
+  }
+
+  if (abi.abi) {
+    abi = abi.abi;
+  }
+
   return new web3.eth.Contract(abi, address);
 }
 

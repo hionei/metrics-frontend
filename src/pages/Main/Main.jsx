@@ -127,49 +127,24 @@ const Main = () => {
       try {
         const web3 = getWeb3(walletProvider);
 
-        console.log("WEB#", web3);
-
-        const priceSubmitterContract = await getWeb3Contract(
-          web3,
-          SUBMITTER_CONTRACT_ADDRESS,
-          "PriceSubmitter",
-          "contracts/genesis/implementation/PriceSubmitter.sol/PriceSubmitter.json"
-        );
-        console.log("Price Submitter,", priceSubmitterContract);
+        const priceSubmitterContract = await getWeb3Contract(web3, SUBMITTER_CONTRACT_ADDRESS, "PriceSubmitter");
 
         const ftsoManagerAddress = await priceSubmitterContract.methods.getFtsoManager().call();
 
-        console.log("Ftsomanageraddress", ftsoManagerAddress);
-
-        const ftsoManagerContract = await getWeb3Contract(
-          web3,
-          ftsoManagerAddress,
-          "FtsoManager",
-          "contracts/ftso/implementation/FtsoManager.sol/FtsoManager.json"
-        );
-
-        console.log("FtsomanagerContract", ftsoManagerContract);
+        const ftsoManagerContract = await getWeb3Contract(web3, ftsoManagerAddress, "FtsoManager");
 
         const rewardEpochID = await ftsoManagerContract.methods.getCurrentRewardEpoch().call();
         const rewardEpochDurationSeconds = await ftsoManagerContract.methods.rewardEpochDurationSeconds().call();
         const ftsoRewardManagerAddress = await ftsoManagerContract.methods.rewardManager().call();
         const currentRewardEpochEnds = await ftsoManagerContract.methods.currentRewardEpochEnds().call();
 
-        console.log("Complex info", rewardEpochID, rewardEpochDurationSeconds, ftsoRewardManagerAddress, currentRewardEpochEnds);
-
-        const ftsoRewardManagerContract = await getWeb3Contract(
-          web3,
-          ftsoRewardManagerAddress,
-          "FtsoRewardManager",
-          "contracts/tokenPools/implementation/FtsoRewardManager.sol/FtsoRewardManager.json"
-        );
+        const ftsoRewardManagerContract = await getWeb3Contract(web3, ftsoRewardManagerAddress, "FtsoRewardManager");
 
         if (chainId == 14) {
           const distributionToDelegatorsContract = await getWeb3Contract(
             web3,
             DISTRIBUTION_CONTRACT_ADDRESS,
-            "DistributionToDelegators",
-            "contracts/tokenPools/implementation/DistributionToDelegators.sol/DistributionToDelegators.json"
+            "DistributionToDelegators"
           );
 
           setDTDContract({ contract: distributionToDelegatorsContract, address: DISTRIBUTION_CONTRACT_ADDRESS });
@@ -196,12 +171,7 @@ const Main = () => {
 
         const claimSetupManagerAddress = await ftsoRewardManagerContract.methods.claimSetupManager().call();
 
-        const claimSetupManagerContract = await getWeb3Contract(
-          web3,
-          claimSetupManagerAddress,
-          "ClaimSetupManager",
-          "contracts/claimSetupManager/ClaimSetupManager.json"
-        );
+        const claimSetupManagerContract = await getWeb3Contract(web3, claimSetupManagerAddress, "ClaimSetupManager");
 
         setCSMContract({ contract: claimSetupManagerContract, address: claimSetupManagerAddress });
 
@@ -243,12 +213,7 @@ const Main = () => {
 
         const wnatContractAddress = await ftsoRewardManagerContract.methods.wNat().call();
 
-        const wNatContract = await getWeb3Contract(
-          web3,
-          wnatContractAddress,
-          "WNat",
-          "contracts/token/implementation/WNat.sol/WNat.json"
-        );
+        const wNatContract = await getWeb3Contract(web3, wnatContractAddress, "WNat");
 
         const myDelegatees = await wNatContract.methods.delegatesOf(address).call();
 
@@ -268,7 +233,6 @@ const Main = () => {
         const endsin = Number(currentRewardEpochEnds) - currentUnixTime();
         setEndsIn(endsin);
       } catch (err) {
-        console.log("hererererererere");
         console.log(err);
       }
     };
@@ -327,7 +291,7 @@ const Main = () => {
         .deposit()
         .send({ from: address, gas: estimatedGas, value: web3.utils.toWei(String(value), "ether") });
       dispatch(setIsLoading(false));
-      setRefresh((state) => !state);
+      setRefresh(!refresh);
       handleClose();
     } catch (err) {
       dispatch(setIsLoading(false));
