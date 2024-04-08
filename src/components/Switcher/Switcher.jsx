@@ -37,13 +37,7 @@ const Android12Switch = styled(Switch)(({ theme }) => ({
 }));
 
 const Switcher = ({ handleChange, defaultChecked }) => {
-  return (
-    <FormControlLabel
-      onChange={handleChange}
-      control={<Android12Switch defaultChecked checked={defaultChecked} />}
-      label="Listed Only"
-    />
-  );
+  return <FormControlLabel onChange={handleChange} control={<Android12Switch checked={defaultChecked} />} label="Listed Only" />;
 };
 
 export default Switcher;

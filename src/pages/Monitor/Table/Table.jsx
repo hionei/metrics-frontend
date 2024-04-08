@@ -58,91 +58,91 @@ const headCells = [
   {
     id: "name",
     numeric: false,
-    disablePadding: false,
+    disablePadding: true,
     label: "Name",
   },
   {
     id: "address",
     numeric: false,
-    disablePadding: false,
+    disablePadding: true,
     label: "Address",
   },
   {
     id: "successRate",
     numeric: true,
-    disablePadding: false,
-    label: "Success Rate",
+    disablePadding: true,
+    label: "Success Rate (%)",
   },
   {
     id: "curRewardRate",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Reward Rate",
   },
   {
     id: "prev_reward_rate",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Prev Reward Rate",
   },
   {
     id: "balance",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Balance",
   },
   {
     id: "availability",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Availability",
   },
   {
     id: "totalEpochReward",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Total Reward",
   },
   {
     id: "currentEpochReward",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Current Earning",
   },
   {
     id: "currentVotePower",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Current Vote Power",
   },
   {
     id: "currentDelegation",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Current Delegation",
   },
   {
     id: "lockedVotePower",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Locked Vote Power",
   },
   {
     id: "lockedDelegation",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Locked Delegation",
   },
   {
     id: "whitelist",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Whitelist",
   },
   {
     id: "fee",
     numeric: true,
-    disablePadding: false,
+    disablePadding: true,
     label: "Fee",
   },
 ];
@@ -202,10 +202,6 @@ export default function EnhancedTable({ rows, totalVotePower }) {
   const [dlgStatus, setDlgStatus] = React.useState(false);
   const [selectedProviderInfo, setSelectedProviderInfo] = React.useState(null);
 
-  React.useEffect(() => {
-    console.log(rows);
-  }, [rows]);
-
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -254,11 +250,11 @@ export default function EnhancedTable({ rows, totalVotePower }) {
   }, [order, orderBy, page, rowsPerPage, rows]);
 
   return (
-    <Box sx={{ width: "100%", overflowX: "auto" }}>
+    <Box sx={{ width: "100%", overflowX: "initial" }}>
       <FTSODialog status={dlgStatus} parentHandleClose={parentHandleClose} providerInfo={selectedProviderInfo} />
       <Paper sx={{ width: "100%", mb: 2 }}>
-        <TableContainer sx={{ overflowX: "auto" }}>
-          <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle" size={dense ? "small" : "medium"}>
+        <TableContainer sx={{ overflowX: "initial" }}>
+          <Table sx={{ minWidth: 650 }} aria-labelledby="tableTitle" size={dense ? "small" : "medium"}>
             <EnhancedTableHead
               numSelected={selected.length}
               order={order}
@@ -323,9 +319,9 @@ export default function EnhancedTable({ rows, totalVotePower }) {
                     <TableCell align="right">
                       {Number(row?.fee.fee) / 100}% <br />
                       {row?.fee.scheduledFee.length > 0 &&
-                        row?.fee.scheduledFee.map((feeInfo) => {
+                        row?.fee.scheduledFee.map((feeInfo, index) => {
                           return (
-                            <span>
+                            <span key={"fee" + index}>
                               ({Number(feeInfo.fee) / 100}% from {feeInfo.from}) &nbsp;
                             </span>
                           );

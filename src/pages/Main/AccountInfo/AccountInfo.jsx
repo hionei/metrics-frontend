@@ -187,13 +187,22 @@ const AccountInfo = ({
                   Undelegate All
                 </Button>
               ) : (
-                <Button
-                  variant="outlined"
-                  sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
-                  onClick={onDelegateClicked}
-                >
-                  Delegate
-                </Button>
+                <div>
+                  <Button
+                    variant="outlined"
+                    sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                    onClick={onUnDelegateClicked}
+                  >
+                    Undelegate All
+                  </Button>{" "}
+                  <Button
+                    variant="outlined"
+                    sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                    onClick={onDelegateClicked}
+                  >
+                    Delegate
+                  </Button>
+                </div>
               )}
             </div>
           </div>

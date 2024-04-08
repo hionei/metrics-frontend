@@ -38,7 +38,6 @@ export default function FTSODialog({ status, parentHandleClose, providerInfo }) 
 
   React.useEffect(() => {
     setFtsoInfo(providerInfo);
-    console.log(providerInfo);
   }, [providerInfo]);
 
   React.useEffect(() => {

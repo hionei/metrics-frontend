@@ -25,7 +25,7 @@ export default function Layout() {
       {isLoading && <Loader />}
 
       <Header />
-      <main className="mt-3">
+      <main className="mt-3 px-4">
         <Suspense fallback={<Loader />}>
           <Outlet />
         </Suspense>
