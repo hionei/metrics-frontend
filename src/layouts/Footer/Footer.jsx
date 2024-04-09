@@ -26,12 +26,12 @@ const Footer = () => {
           <IconButton
             onMouseOver={() => handleMouseOver(1)}
             onMouseOut={() => handleMouseOut(1)}
-            title="@SasankBharadwaj"
+            title="@FlareuniverseX"
             aria-label="delete"
             size="medium"
             sx={{ color: "black" }}
             onClick={() => {
-              window.open("https://twitter.com/SasankBharadwaj/", "_blank");
+              window.open("https://twitter.com/FlareuniverseX/", "_blank");
             }}
           >
             <XIcon fontSize="inherit" />
@@ -51,7 +51,7 @@ const Footer = () => {
           </IconButton>
           {showXToolTip && (
             <div className="fixed bottom-1 left-1 bg-gray-700 text-white text-xs p-1 rounded">
-              https://twitter.com/SasankBharadwaj/
+              https://twitter.com/FlareuniverseX/
             </div>
           )}
           {showEmailToolTip && (
