@@ -27,7 +27,6 @@ const SendWSGBDlg = ({ open, handleClose, balance, onSendWSGB, loading }) => {
   const _onWrapSGB = () => {
     const inputValue = inputElement.current.value;
     const address = addressElement.current.value;
-    console.log(inputValue, address);
 
     if (!isValidEthereumAddress(address)) {
       setAddressError(1);

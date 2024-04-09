@@ -30,7 +30,7 @@ const SetAutoClaimDlg = ({ open, handleClose, balance, onEnableAutoClaim, loadin
     let addresses = [...otherExecutors];
     if (autoClaim.flareUniverse) addresses.push({ address: AUTO_CLAIM_ADDRESS, fee: 0 });
 
-    if (autoClaim.flareUniverse || autoClaim.others) onEnableAutoClaim(addresses, true);
+    if (autoClaim.flareUniverse) onEnableAutoClaim(addresses, true);
     else onEnableAutoClaim(addresses, false);
   };
 

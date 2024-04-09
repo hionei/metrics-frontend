@@ -5,8 +5,10 @@ import { getWeb3 } from "../../../utils/web3";
 import { useSelector } from "react-redux";
 import IconButton from "@mui/material/IconButton";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
+import Skeleton from "@mui/material/Skeleton";
 import DelegateDlg from "../Dialogs/DelegateDlg";
 import { EXPLORER_URL, SYMBOLS, WRAPSYMBOLS } from "../../../config";
+import LinearProgress from "@mui/material/LinearProgress";
 
 const AccountInfo = ({
   curUserRewardAmount,
@@ -28,6 +30,8 @@ const AccountInfo = ({
   onDelegate,
   connectedExecutors,
   loading,
+  delegatorsLoading,
+  autoClaimersLoading,
 }) => {
   const { address, chainId, isConnected } = useWeb3ModalAccount();
   const [_balance, setBalance] = useState(balance);
@@ -158,24 +162,32 @@ const AccountInfo = ({
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
             <div>Delegate to FTSO provider: </div>
             <div>
-              {delegatees.map((delegatee, index) => {
-                return (
-                  <div key={"deletee" + index}>
-                    {`${
-                      providerInfo.filter((provider) => provider.address == delegatee.address && provider.chainId == chainId)[0]
-                        ?.name || ""
-                    } - ${delegatee.address}`}{" "}
-                    {`(${Number(delegatee.bip) / 100}%)`}
-                    <IconButton
-                      aria-label="edit"
-                      color="primary"
-                      onClick={() => onEdit(delegatee.address, Number(delegatee.bip), sumOfBip - Number(delegatee.bip))}
-                    >
-                      <EditRoundedIcon />
-                    </IconButton>
-                  </div>
-                );
-              })}
+              {delegatorsLoading ? (
+                <Skeleton variant="rectangular" width="100%">
+                  <label>
+                    <span>Flare Universe</span>"0xBe7AD281aEF0405a252b12D5251e99c95f58799a"<span>100%</span>
+                  </label>
+                </Skeleton>
+              ) : (
+                delegatees.map((delegatee, index) => {
+                  return (
+                    <div key={"deletee" + index}>
+                      {`${
+                        providerInfo.filter((provider) => provider.address == delegatee.address && provider.chainId == chainId)[0]
+                          ?.name || ""
+                      } - ${delegatee.address}`}{" "}
+                      {`(${Number(delegatee.bip) / 100}%)`}
+                      <IconButton
+                        aria-label="edit"
+                        color="primary"
+                        onClick={() => onEdit(delegatee.address, Number(delegatee.bip), sumOfBip - Number(delegatee.bip))}
+                      >
+                        <EditRoundedIcon />
+                      </IconButton>
+                    </div>
+                  );
+                })
+              )}
             </div>
             <div>
               {delegatees.length >= 2 ? (
@@ -186,7 +198,7 @@ const AccountInfo = ({
                 >
                   Undelegate All
                 </Button>
-              ) : (
+              ) : delegatees.length == 1 ? (
                 <div>
                   <Button
                     variant="outlined"
@@ -203,27 +215,41 @@ const AccountInfo = ({
                     Delegate
                   </Button>
                 </div>
+              ) : (
+                <Button
+                  variant="outlined"
+                  sx={{ borderRadius: "2em", color: "#000", borderColor: "#000" }}
+                  onClick={onDelegateClicked}
+                >
+                  Delegate
+                </Button>
               )}
             </div>
           </div>
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
-            <div className="">Auto-claim (fee: 0 {SYMBOLS[chainId]}) </div>
+            <div className="">Auto-claim (fee: 0 {SYMBOLS[chainId]} as Manual) </div>
             <div className="flex flex-col">
-              {connectedExecutors.map((executor, index) => {
-                return (
-                  <label key={executor + index}>
-                    {executor} :
-                    {registeredExecutors.filter((reEx) => reEx.address == executor).length > 0 ? (
-                      <span>
-                        (Registered Fee: {registeredExecutors.filter((reEx) => reEx.address == executor)[0]?.fee}{" "}
-                        {SYMBOLS[chainId]})
-                      </span>
-                    ) : (
-                      "(Manual)"
-                    )}
-                  </label>
-                );
-              })}
+              {autoClaimersLoading ? (
+                <Skeleton>
+                  <label>0xBe7AD281aEF0405a252b12D5251e99c95f58799a : Manual</label>
+                </Skeleton>
+              ) : (
+                connectedExecutors.map((executor, index) => {
+                  return (
+                    <label key={executor + index}>
+                      {executor} :
+                      {registeredExecutors.filter((reEx) => reEx.address == executor).length > 0 ? (
+                        <span>
+                          (Registered Fee: {registeredExecutors.filter((reEx) => reEx.address == executor)[0]?.fee}{" "}
+                          {SYMBOLS[chainId]})
+                        </span>
+                      ) : (
+                        "(Manual)"
+                      )}
+                    </label>
+                  );
+                })
+              )}
             </div>
             <div>
               <Button

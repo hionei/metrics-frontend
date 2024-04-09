@@ -79,7 +79,7 @@ function App() {
       >
         {/* <meta name="og:country-name" content="United States" /> */}
       </BetterHelmet>
-      <RouterProvider router={router} />;
+      <RouterProvider router={router} />
     </>
   );
 }

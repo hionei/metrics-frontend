@@ -68,6 +68,8 @@ const Main = () => {
 
   const [delegatees, setDelegatees] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [delegatorLoading, setDelegatorsLoading] = useState(false);
+  const [autoClaimersLoading, setAutoClaimersLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const [error, setError] = useState(0);
   const [connectedExecutors, setConnectedExecutors] = useState([]);
@@ -125,15 +127,12 @@ const Main = () => {
     getBalance();
     const promise = async () => {
       try {
+        setDelegatorsLoading(true);
+        setAutoClaimersLoading(true);
         const web3 = getWeb3(walletProvider);
 
         // const priceSubmitterContract = await getWeb3Contract(web3, SUBMITTER_CONTRACT_ADDRESS, "PriceSubmitter");
-
-        // const ftsoManagerAddress = await priceSubmitterContract.methods.getFtsoManager().call();
-
         const ftsoManagerContract = await getWeb3Contract(web3, CONTRACTS_ADDRESS[chainId].FtsoManager, "FtsoManager");
-
-        console.log("ftsoManagerContract");
         const ftsoRewardManagerContract = await getWeb3Contract(
           web3,
           CONTRACTS_ADDRESS[chainId].FtsoRewardManager,
@@ -148,13 +147,6 @@ const Main = () => {
         const wNatContract = await getWeb3Contract(web3, CONTRACTS_ADDRESS[chainId].WNat, "WNat");
         setWNatContract({ contract: wNatContract, address: CONTRACTS_ADDRESS[chainId].WNat });
 
-        console.log(
-          chainId,
-          CONTRACTS_ADDRESS[chainId].FtsoManager,
-          CONTRACTS_ADDRESS[chainId].FtsoRewardManager,
-          CONTRACTS_ADDRESS[chainId].WNat
-        );
-
         const claimSetupManagerContract = await getWeb3Contract(
           web3,
           CONTRACTS_ADDRESS[chainId].ClaimSetupManager,
@@ -165,10 +157,7 @@ const Main = () => {
 
         const rewardEpochID = await ftsoManagerContract.methods.getCurrentRewardEpoch().call();
         const rewardEpochDurationSeconds = await ftsoManagerContract.methods.rewardEpochDurationSeconds().call();
-        // const ftsoRewardManagerAddress = await ftsoManagerContract.methods.rewardManager().call();
         const currentRewardEpochEnds = await ftsoManagerContract.methods.currentRewardEpochEnds().call();
-
-        console.log("111111");
 
         if (chainId == 14) {
           const distributionToDelegatorsContract = await getWeb3Contract(
@@ -197,8 +186,6 @@ const Main = () => {
           setFlareDropMonths(monthsIntList);
         }
 
-        // const claimSetupManagerAddress = await ftsoRewardManagerContract.methods.claimSetupManager().call();
-
         const rawResult = await claimSetupManagerContract.methods.getRegisteredExecutors(0, 10).call();
         let executersInfo = [];
         for (let executerAddr of rawResult[0]) {
@@ -211,12 +198,10 @@ const Main = () => {
 
         const _connectedExecutors = await claimSetupManagerContract.methods.claimExecutors(address).call();
         setConnectedExecutors(_connectedExecutors);
-
-        console.log("22222222");
+        setAutoClaimersLoading(false);
 
         const unClaimedEpochs = await ftsoRewardManagerContract.methods.getEpochsWithUnclaimedRewards(address).call();
         let totalReward = new BigNumber(0);
-        console.log(4444444);
 
         setUnClaimedEpochs(unClaimedEpochs);
 
@@ -229,8 +214,6 @@ const Main = () => {
         }
         setCurUserClaimableAmount(BigNumber(totalReward).toString());
 
-        console.log(333333);
-
         const curUserRewardInfo = await ftsoRewardManagerContract.methods.getStateOfRewards(address, rewardEpochID).call();
 
         let curUserReward = new BigNumber(0);
@@ -239,11 +222,7 @@ const Main = () => {
         });
 
         setCurUserRewardAmount(curUserReward.toString());
-
-        // const wnatContractAddress = await ftsoRewardManagerContract.methods.wNat().call();
-
         const myDelegatees = await wNatContract.methods.delegatesOf(address).call();
-
         const delegateesInfo = myDelegatees[0].map((delegatee, index) => {
           return {
             address: delegatee,
@@ -252,13 +231,15 @@ const Main = () => {
         });
 
         setDelegatees(delegateesInfo);
-
+        setDelegatorsLoading(false);
         setDuration(Number(rewardEpochDurationSeconds));
         setEpochID(Number(rewardEpochID));
         const endsin = Number(currentRewardEpochEnds) - currentUnixTime();
         setEndsIn(endsin);
       } catch (err) {
         console.log(err);
+        setDelegatorsLoading(false);
+        setAutoClaimersLoading(false);
       }
     };
 
@@ -315,7 +296,6 @@ const Main = () => {
       const wrapTransaction = await wnatContract.contract.methods
         .deposit()
         .send({ from: address, gas: estimatedGas, value: web3.utils.toWei(String(value), "ether") });
-      console.log(wrapTransaction);
       dispatch(setIsLoading(false));
       setRefresh(!refresh);
       handleClose();
@@ -449,7 +429,7 @@ const Main = () => {
           feeParam += Number(executor.fee);
         }
 
-        console.log(executorsParam, feeParam);
+        console.log(executorsInfo);
 
         let estimatedGas = await CSMContract.contract.methods
           .setClaimExecutors(executorsParam, feeParam)
@@ -457,11 +437,11 @@ const Main = () => {
 
         estimatedGas = Math.round(Number(estimatedGas) * 1.2);
 
-        // dispatch(setIsLoading(true));
+        dispatch(setIsLoading(true));
 
-        // await CSMContract.contract.methods
-        //   .setClaimExecutors(executorsParam, feeParam)
-        //   .send({ from: address, gas: estimatedGas, value: web3.utils.toWei(feeParam, "ether") });
+        await CSMContract.contract.methods
+          .setClaimExecutors(executorsParam, feeParam)
+          .send({ from: address, gas: estimatedGas, value: web3.utils.toWei(feeParam, "ether") });
         setRefresh((state) => !state);
 
         if (chainId == 14) {
@@ -493,15 +473,22 @@ const Main = () => {
         let executorsParam = [];
         let feeParam = 0;
 
+        for (let executor of executorsInfo) {
+          executorsParam.push(executor.address);
+          feeParam += Number(executor.fee);
+        }
+
         let estimatedGas = await CSMContract.contract.methods
           .setClaimExecutors(executorsParam, feeParam)
-          .estimateGas({ from: address, to: CSMContract.address });
+          .estimateGas({ from: address, to: CSMContract.address, value: web3.utils.toWei(feeParam, "ether") });
 
         estimatedGas = Math.round(Number(estimatedGas) * 1.2);
 
         dispatch(setIsLoading(true));
 
-        await CSMContract.contract.methods.setClaimExecutors(executorsParam, feeParam).send({ from: address, gas: estimatedGas });
+        await CSMContract.contract.methods
+          .setClaimExecutors(executorsParam, feeParam)
+          .send({ from: address, gas: estimatedGas, value: web3.utils.toWei(feeParam, "ether") });
 
         if (chainId == 14) {
           try {
@@ -611,6 +598,8 @@ const Main = () => {
             onFlareDropClaimClicked={onFlareDropClaimClicked}
             onDelegate={onDelegate}
             loading={loading}
+            delegatorsLoading={delegatorLoading}
+            autoClaimersLoading={autoClaimersLoading}
           />
 
           <WrapSGBDlg open={isOpenWrapDlg} handleClose={handleClose} balance={balance} onWrapSGB={onWrapSGB} loading={loading} />

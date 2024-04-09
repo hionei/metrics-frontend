@@ -17,7 +17,7 @@ import { Badge } from "@mui/material";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import FTSODialog from "./FTSODialog";
-
+import { styled } from "@mui/material/styles";
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
     return -1;
@@ -80,7 +80,7 @@ const headCells = [
     label: "Reward Rate",
   },
   {
-    id: "prev_reward_rate",
+    id: "prevRewardRate",
     numeric: true,
     disablePadding: true,
     label: "Prev Reward Rate",
@@ -254,7 +254,7 @@ export default function EnhancedTable({ rows, totalVotePower }) {
       <FTSODialog status={dlgStatus} parentHandleClose={parentHandleClose} providerInfo={selectedProviderInfo} />
       <Paper sx={{ width: "100%", mb: 2 }}>
         <TableContainer sx={{ overflowX: "initial" }}>
-          <Table sx={{ minWidth: 650 }} aria-labelledby="tableTitle" size={dense ? "small" : "medium"}>
+          <Table sx={{ minWidth: 650 }} aria-labelledby="tableTitle" size={dense ? "small" : "medium"} stickyHeader>
             <EnhancedTableHead
               numSelected={selected.length}
               order={order}
@@ -269,7 +269,7 @@ export default function EnhancedTable({ rows, totalVotePower }) {
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
-                  <TableRow
+                  <StyledTableRow
                     hover
                     onClick={(event) => handleClick(event, row.id)}
                     role="checkbox"
@@ -327,7 +327,7 @@ export default function EnhancedTable({ rows, totalVotePower }) {
                           );
                         })}
                     </TableCell>
-                  </TableRow>
+                  </StyledTableRow>
                 );
               })}
               {emptyRows > 0 && (
@@ -346,6 +346,26 @@ export default function EnhancedTable({ rows, totalVotePower }) {
     </Box>
   );
 }
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  "&:nth-of-type(odd)": {
+    backgroundColor: theme.palette.action.hover,
+  },
+  // hide last border
+  "&:last-child td, &:last-child th": {
+    border: 0,
+  },
+}));
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  [`&.${tableCellClasses.head}`]: {
+    backgroundColor: theme.palette.common.black,
+    color: theme.palette.common.white,
+  },
+  [`&.${tableCellClasses.body}`]: {
+    fontSize: 14,
+  },
+}));
 
 const returnColorDom = (value) => {
   if (value > 2.5) return <span className="text-red-600">{value}%</span>;

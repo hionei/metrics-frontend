@@ -135,15 +135,21 @@ export default function FTSODialog({ status, parentHandleClose, providerInfo }) 
                 <label>
                   Fee: {Number(ftsoInfo.fee.fee) / 100}
                   {"% "}
-                  {ftsoInfo.fee.scheduledFee.fee != ""
-                    ? `(${Number(ftsoInfo.fee.scheduledFee.fee) / 100}% from ${ftsoInfo.fee.scheduledFee.from})`
-                    : ""}
+                  {ftsoInfo?.fee.scheduledFee.length > 0 &&
+                    ftsoInfo?.fee.scheduledFee.map((feeInfo, index) => {
+                      return (
+                        <span key={"fee" + index}>
+                          ({Number(feeInfo.fee) / 100}% from {feeInfo.from}) &nbsp;
+                        </span>
+                      );
+                    })}
                 </label>
                 <div>
                   Whitelisted:
                   <div className="flex flex-wrap gap-1">
-                    {Object.keys(ftsoInfo.whitelist).map((symbol) => {
-                      if (ftsoInfo.whitelist[symbol]) return <Chip label={symbol} color="success" size="small" />;
+                    {Object.keys(ftsoInfo.whitelist).map((symbol, index) => {
+                      if (ftsoInfo.whitelist[symbol])
+                        return <Chip key={"symbol" + index} label={symbol} color="success" size="small" />;
                       else return <></>;
                     })}
                   </div>

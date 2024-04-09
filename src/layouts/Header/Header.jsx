@@ -49,7 +49,7 @@ const Header = () => {
   };
 
   return (
-    <header className="flex flex-row px-4 py-3 align-center border-b shadow-lg">
+    <header className="flex flex-row px-4 py-3 align-center border-b shadow-lg min-h-[70px]">
       <div className="flex items-center gap-2 align-center justify-center">
         <Avatar src="logo.png" size="md" />
         <Typography level="h4" color="primary">

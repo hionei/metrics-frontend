@@ -6,7 +6,7 @@ import { getWeb3 } from "../../../../../utils/web3";
 import Pagination from "@mui/material/Pagination";
 import TextField from "@mui/material/TextField";
 import LoadingButton from "@mui/lab/LoadingButton";
-
+import SearchIcon from "@mui/icons-material/Search";
 const columns = [
   { field: "id", headerName: "No", width: 70 },
   { field: "address", headerName: "Address", width: 350 },
@@ -30,7 +30,6 @@ const DelegatorsTable = ({ address }) => {
 
   useEffect(() => {
     const web3 = getWeb3();
-    console.log(address, displayCount);
     if (address) {
       const offset = (page - 1) * displayCount;
       const GET_DELEGATORS = gql`
@@ -61,40 +60,39 @@ const DelegatorsTable = ({ address }) => {
         }
       }`;
 
-      console.log(GET_DELEGATORS);
-
       const getGQLResult = async () => {
-        setLoading(true);
-        const results = await client.query({
-          query: GET_DELEGATORS,
-        });
-        setLoading(false);
-        console.log(results);
-        setTotalCount(results.data.delegates.totalCount);
+        try {
+          setLoading(true);
+          const results = await client.query({
+            query: GET_DELEGATORS,
+          });
+          setLoading(false);
+          setTotalCount(results.data.delegates.totalCount);
 
-        const newDelegatorInfoArr = results.data.delegates.nodes.map((delegatorInfo, index) => {
-          return {
-            id: (page - 1) * DISPLAY_COUNT + index + 1,
-            address: delegatorInfo.owner,
-            amount: Math.floor(web3.utils.fromWei(delegatorInfo.amount, "ether")).toLocaleString(),
-            delegatereward: 0,
-            pinnaclereward: 0,
-            percent: 0,
-          };
-        });
-        setRows(newDelegatorInfoArr);
+          const newDelegatorInfoArr = results.data.delegates.nodes.map((delegatorInfo, index) => {
+            return {
+              id: (page - 1) * DISPLAY_COUNT + index + 1,
+              address: delegatorInfo.owner,
+              amount: Math.floor(web3.utils.fromWei(delegatorInfo.amount, "ether")).toLocaleString(),
+              delegatereward: 0,
+              pinnaclereward: 0,
+              percent: 0,
+            };
+          });
+          setRows(newDelegatorInfoArr);
+        } catch (err) {
+          setLoading(false);
+        }
       };
       getGQLResult();
     }
   }, [page, address]);
 
   const handleChange = (event, value) => {
-    console.log(value);
     setPage(value);
   };
 
   const onSearch = (event) => {
-    console.log(searchAddr);
     const web3 = getWeb3();
     const GET_DELEGATORS = gql`
     {
@@ -160,7 +158,7 @@ const DelegatorsTable = ({ address }) => {
               setSearchAddr(event.target.value);
             }}
           />
-          <LoadingButton variant="contained" onClick={onSearch} loadingPosition="end" loading={loading}>
+          <LoadingButton variant="contained" onClick={onSearch} loadingPosition="end" loading={loading} endIcon={<SearchIcon />}>
             Search
           </LoadingButton>
         </div>
