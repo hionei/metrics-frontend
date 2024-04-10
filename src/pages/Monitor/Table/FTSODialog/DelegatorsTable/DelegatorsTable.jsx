@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { gql, ApolloClient, InMemoryCache } from "@apollo/client";
 import { DataGrid } from "@mui/x-data-grid";
-import { PROVIDER_ADDRESS, SUBQUERY_URL } from "../../../../../config";
+import { API_URL, PROVIDER_ADDRESS, SUBQUERY_URL } from "../../../../../config";
 import { getWeb3 } from "../../../../../utils/web3";
 import Pagination from "@mui/material/Pagination";
 import TextField from "@mui/material/TextField";
 import LoadingButton from "@mui/lab/LoadingButton";
 import SearchIcon from "@mui/icons-material/Search";
+import axios from "axios";
+import { useSelector } from "react-redux";
+
 const columns = [
   { field: "id", headerName: "No", width: 70 },
   { field: "address", headerName: "Address", width: 350 },
@@ -27,49 +30,25 @@ const DelegatorsTable = ({ address }) => {
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]);
   const [searchAddr, setSearchAddr] = useState("");
+  const networkId = useSelector((state) => state.network.value);
 
   useEffect(() => {
     const web3 = getWeb3();
     if (address) {
-      const offset = (page - 1) * displayCount;
-      const GET_DELEGATORS = gql`
-      {
-        delegates(
-          first: ${displayCount}
-          offset: ${offset}
-          orderBy: AMOUNT_DESC
-          filter: {
-            network: { equalTo: "songbird" }
-            delegatee: { equalTo: "${address}" }
-          }
-        ) {
-          nodes {
-            id
-            network
-            owner
-            delegatee
-            amount
-          }
-          totalCount
-          pageInfo {
-            hasNextPage
-            hasPreviousPage
-            startCursor
-            endCursor
-          }
-        }
-      }`;
-
       const getGQLResult = async () => {
         try {
           setLoading(true);
-          const results = await client.query({
-            query: GET_DELEGATORS,
-          });
-          setLoading(false);
-          setTotalCount(results.data.delegates.totalCount);
 
-          const newDelegatorInfoArr = results.data.delegates.nodes.map((delegatorInfo, index) => {
+          let results;
+
+          if (networkId == 1) results = await axios.get(`${API_URL[19]}/delegators/${address}/${page}`);
+          if (networkId == 2) results = await axios.get(`${API_URL[14]}/delegators/${address}/${page}`);
+
+          console.log(results);
+          setLoading(false);
+          setTotalCount(results.data.result.delegates.totalCount);
+
+          const newDelegatorInfoArr = results.data.result.delegates.nodes.map((delegatorInfo, index) => {
             return {
               id: (page - 1) * DISPLAY_COUNT + index + 1,
               address: delegatorInfo.owner,
