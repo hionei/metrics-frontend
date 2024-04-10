@@ -79,6 +79,7 @@ function App() {
         image="https://raw.githubusercontent.com/flareuniverse/images/main/static/metaimg.jpg"
       >
         <meta name="og:country-name" content="United States" />
+        <meta property="og:image" content="https://raw.githubusercontent.com/flareuniverse/images/main/static/metaimg.jpg" />
       </BetterHelmet>
       <RouterProvider router={router} />
     </>
