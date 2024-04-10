@@ -76,8 +76,9 @@ function App() {
         url="https://flareuniverse.xyz"
         keywords="Flare, Universe, Songbird, songbird, flare, ftso, oracle, system, SGB, FLR, monitor, metrics, assets, delegate, data providers,"
         description="This is a website (web3 dapp) that monitors ftso data providers's status supported by Flare Universe. And token holders can manage their assets easily including sending, wraping, delegating and auto-claiming etc. This is based on Songbird and Flare Blockchain Ecosystem"
+        image="/meta.png"
       >
-        {/* <meta name="og:country-name" content="United States" /> */}
+        <meta name="og:country-name" content="United States" />
       </BetterHelmet>
       <RouterProvider router={router} />
     </>
