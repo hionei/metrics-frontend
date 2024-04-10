@@ -16,7 +16,6 @@ import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { changeNetwork } from "../../store/reducers/networkSlice";
 import { useNavigate } from "react-router-dom";
-
 const options = [
   { value: 1, label: "Songbird", src: "/static/images/SGB.svg" },
   { value: 2, label: "Flare", src: "/static/images/FLR.svg" },
