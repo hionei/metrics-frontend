@@ -127,10 +127,20 @@ const AccountInfo = ({
             </div>
             <div className="flex gap-1">
               <ButtonGroup>
-                <Button variant="outlined" sx={{ borderRadius: "2em", textTransform: "none" }} onClick={onSgbWrapClicked}>
+                <Button
+                  color="secondary"
+                  variant="outlined"
+                  sx={{ borderRadius: "2em", textTransform: "none" }}
+                  onClick={onSgbWrapClicked}
+                >
                   Wrap
                 </Button>
-                <Button variant="outlined" sx={{ borderRadius: "2em", textTransform: "none" }} onClick={onSgbSendClicked}>
+                <Button
+                  color="secondary"
+                  variant="outlined"
+                  sx={{ borderRadius: "2em", textTransform: "none" }}
+                  onClick={onSgbSendClicked}
+                >
                   Send
                 </Button>
               </ButtonGroup>
@@ -184,22 +194,42 @@ const AccountInfo = ({
             </div>
             <div>
               {delegatees.length >= 2 ? (
-                <Button variant="outlined" sx={{ borderRadius: "2em", textTransform: "none" }} onClick={onUnDelegateClicked}>
+                <Button
+                  color="secondary"
+                  variant="outlined"
+                  sx={{ borderRadius: "2em", textTransform: "none" }}
+                  onClick={onUnDelegateClicked}
+                >
                   Undelegate All
                 </Button>
               ) : delegatees.length == 1 ? (
                 <div>
                   <ButtonGroup>
-                    <Button variant="outlined" sx={{ borderRadius: "2em", textTransform: "none" }} onClick={onUnDelegateClicked}>
+                    <Button
+                      color="secondary"
+                      variant="outlined"
+                      sx={{ borderRadius: "2em", textTransform: "none" }}
+                      onClick={onUnDelegateClicked}
+                    >
                       Undelegate
                     </Button>{" "}
-                    <Button variant="outlined" sx={{ borderRadius: "2em", textTransform: "none" }} onClick={onDelegateClicked}>
+                    <Button
+                      color="secondary"
+                      variant="outlined"
+                      sx={{ borderRadius: "2em", textTransform: "none" }}
+                      onClick={onDelegateClicked}
+                    >
                       Delegate
                     </Button>
                   </ButtonGroup>
                 </div>
               ) : (
-                <Button variant="outlined" sx={{ borderRadius: "2em", textTransform: "none" }} onClick={onDelegateClicked}>
+                <Button
+                  color="secondary"
+                  variant="outlined"
+                  sx={{ borderRadius: "2em", textTransform: "none" }}
+                  onClick={onDelegateClicked}
+                >
                   Delegate
                 </Button>
               )}
@@ -239,7 +269,7 @@ const AccountInfo = ({
           <div className="flex justify-between items-center bg-[#e7e7e74f] p-2 rounded-[2em]">
             <div className="flex-1 text-start">
               <Chip
-                color="primary"
+                color="secondary"
                 variant="outlined"
                 icon={<MonetizationOnIcon />}
                 label={` Current Earnings: ${_curUserRewardAmountEther}`}
@@ -247,7 +277,7 @@ const AccountInfo = ({
             </div>
             <div className="flex-1 text-end">
               <Chip
-                color="primary"
+                color="secondary"
                 variant="outlined"
                 icon={<GetAppIcon />}
                 label={` Claimable: ${_curUserClaimableAmountEther}`}
