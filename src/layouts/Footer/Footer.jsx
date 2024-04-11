@@ -65,7 +65,7 @@ const Footer = () => {
             }}
           >
             <SvgIcon fontSize="inherit">
-              <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 100 100" viewBox="0 0 100 100" id="discord">
+              <svg xmlns="http://www.w3.org/2000/svg" enableBackground="new 0 0 100 100" viewBox="0 0 100 100" id="discord">
                 <path
                   d="M85.778,24.561c-11.641-8.71-22.793-8.466-22.793-8.466s-1.14,1.302-1.14,1.302c13.839,4.152,20.27,10.257,20.27,10.257
 		c-19.799-10.901-45.019-10.823-65.613,0c0,0,6.675-6.431,21.328-10.583c0,0-0.814-0.977-0.814-0.977s-11.071-0.244-22.793,8.466

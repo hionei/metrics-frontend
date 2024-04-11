@@ -77,10 +77,7 @@ function App() {
         keywords="Flare, Universe, Songbird, songbird, flare, ftso, oracle, system, SGB, FLR, monitor, metrics, assets, delegate, data providers,"
         description="This is a website (web3 dapp) that monitors ftso data providers's status supported by Flare Universe. And token holders can manage their assets easily including sending, wraping, delegating and auto-claiming etc. This is based on Songbird and Flare Blockchain Ecosystem"
         favIcon="https://flareuniverse.xyz/favicon.png"
-        // image="https://flareuniverse.vercel.app/metaimg.jpg"
-      >
-        {/* <meta property="og:image" content="https://flareuniverse.vercel.app/metaimg.jpg" /> */}
-      </BetterHelmet>
+      ></BetterHelmet>
       <RouterProvider router={router} />
     </>
   );

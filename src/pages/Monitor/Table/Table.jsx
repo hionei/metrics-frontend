@@ -252,7 +252,7 @@ export default function EnhancedTable({ rows, totalVotePower }) {
   return (
     <Box sx={{ width: "100%", overflowX: "initial" }}>
       <FTSODialog status={dlgStatus} parentHandleClose={parentHandleClose} providerInfo={selectedProviderInfo} />
-      <Paper sx={{ width: "100%", mb: 2 }}>
+      <Paper sx={{ width: "100%" }}>
         <TableContainer sx={{ overflowX: "initial" }}>
           <Table sx={{ minWidth: 650 }} aria-labelledby="tableTitle" size={dense ? "small" : "medium"} stickyHeader>
             <EnhancedTableHead

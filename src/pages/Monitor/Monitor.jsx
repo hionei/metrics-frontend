@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../../config";
 import { useSelector } from "react-redux";
@@ -7,6 +7,7 @@ import TimeLeft from "../../components/TimeLeft";
 import Table from "./Table";
 import Web3 from "web3";
 import Switcher from "../../components/Switcher";
+import LinearProgress from "@mui/material/LinearProgress";
 
 const Monitor = () => {
   const networkId = useSelector((state) => state.network.value);
@@ -18,10 +19,31 @@ const Monitor = () => {
   const [duration, setDuration] = useState(0);
   const [defaultChecked, setDefaultChecked] = useState(true);
 
+  const [progress, setProgress] = useState(0);
+  const [showProgress, setShowProgress] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setProgress((oldProgress) => {
+        if (oldProgress === 100) {
+          setShowProgress(false);
+          return 0;
+        }
+        const diff = Math.random() * 10;
+        return Math.min(oldProgress + diff, 100);
+      });
+    }, 100);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+
   useEffect(() => {
     const getSongbirdProvidersInfo = async () => {
       try {
         const rawResult = await axios.get(API_URL[19] + "/providers");
+        setProgress(100);
         setEpochID(rawResult.data.epochId);
         setEndsIn(Number(rawResult.data.endsIn));
         setTotalVP(Math.round(Web3.utils.fromWei(rawResult.data.totalVotePower, "ether")));
@@ -104,7 +126,7 @@ const Monitor = () => {
 
   return (
     <>
-      <div className="flex gap-2 flex-wrap justify-center">
+      <div className="flex mt-5 gap-3 flex-wrap justify-center">
         <div>
           <Chip variant="soft" color="primary">
             Reward Epoch: {epochID}
@@ -126,6 +148,7 @@ const Monitor = () => {
       </div>
 
       <Table rows={providersInfo} totalVotePower={totalVP} />
+      <div>{showProgress && <LinearProgress variant="determinate" value={progress} />}</div>
     </>
   );
 };

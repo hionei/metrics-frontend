@@ -61,21 +61,30 @@ const SendSGBDlg = ({ open, handleClose, balance, onSendSGB, loading }) => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+      sx={{ padding: "2em" }}
+    >
       <DialogTitle id="alert-dialog-title" sx={{ fontWeight: 600 }}>
         Send {SYMBOLS[chainId]} tokens
       </DialogTitle>
-      <Chip
-        sx={{
-          height: "auto",
-          "& .MuiChip-label": {
-            display: "block",
-            whiteSpace: "normal",
-          },
-          fontSize: "0.9em",
-        }}
-        label={`You can send ${SYMBOLS[chainId]} tokens to recipient. Note that, you should not send whole ${SYMBOLS[chainId]} tokens for gas fee`}
-      ></Chip>
+      <DialogContent>
+        <Chip
+          sx={{
+            height: "auto",
+            "& .MuiChip-label": {
+              display: "block",
+              whiteSpace: "normal",
+            },
+            fontSize: "0.9em",
+          }}
+          label={`You can send ${SYMBOLS[chainId]} tokens to recipient. Note that, you should not send whole ${SYMBOLS[chainId]} tokens for gas fee`}
+        ></Chip>
+      </DialogContent>
+
       <DialogActions>
         <div className="flex flex-1 flex-col gap-10 p-4">
           <div>
