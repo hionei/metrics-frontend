@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { gql, ApolloClient, InMemoryCache } from "@apollo/client";
 import { DataGrid } from "@mui/x-data-grid";
 import { API_URL, PROVIDER_ADDRESS, SUBQUERY_URL } from "../../../../../config";
 import { getWeb3 } from "../../../../../utils/web3";
@@ -15,11 +14,6 @@ const columns = [
   { field: "address", headerName: "Address", width: 350 },
   { field: "amount", headerName: "Amount", width: 100 },
 ];
-
-const client = new ApolloClient({
-  uri: SUBQUERY_URL,
-  cache: new InMemoryCache(),
-});
 
 const DISPLAY_COUNT = 10;
 
@@ -73,55 +67,30 @@ const DelegatorsTable = ({ address }) => {
 
   const onSearch = (event) => {
     const web3 = getWeb3();
-    const GET_DELEGATORS = gql`
-    {
-      delegates(
-        orderBy: AMOUNT_DESC
-        filter: {
-          network: { equalTo: "songbird" }
-          delegatee: { equalTo: "${address}" }
-          owner: {includesInsensitive: "${searchAddr}"}
-        }
-      ) {
-        nodes {
-          id
-          network
-          owner
-          delegatee
-          amount
-        }
-        totalCount
-        pageInfo {
-          hasNextPage
-          hasPreviousPage
-          startCursor
-          endCursor
-        }
-      }
-    }`;
+    console.log(address, searchAddr);
 
-    const getGQLResult = async () => {
-      setLoading(true);
-      const results = await client.query({
-        query: GET_DELEGATORS,
-      });
-      setLoading(false);
+    // const getGQLResult = async () => {
+    //   setLoading(true);
+    //   const results = await client.query({
+    //     query: GET_DELEGATORS,
+    //   });
+    //   setLoading(false);
 
-      setTotalCount(results.data.delegates.totalCount);
+    //   setTotalCount(results.data.delegates.totalCount);
 
-      const newDelegatorInfoArr = results.data.delegates.nodes.map((delegatorInfo, index) => {
-        return {
-          id: (page - 1) * displayCount + index + 1,
-          address: delegatorInfo.owner,
-          amount: Math.floor(web3.utils.fromWei(delegatorInfo.amount, "ether")).toLocaleString(),
-          delegatereward: 0,
-          pinnaclereward: 0,
-          percent: 0,
-        };
-      });
-      setRows(newDelegatorInfoArr);
-    };
-    getGQLResult();
+    //   const newDelegatorInfoArr = results.data.delegates.nodes.map((delegatorInfo, index) => {
+    //     return {
+    //       id: (page - 1) * displayCount + index + 1,
+    //       address: delegatorInfo.owner,
+    //       amount: Math.floor(web3.utils.fromWei(delegatorInfo.amount, "ether")).toLocaleString(),
+    //       delegatereward: 0,
+    //       pinnaclereward: 0,
+    //       percent: 0,
+    //     };
+    //   });
+    //   setRows(newDelegatorInfoArr);
+    // };
+    // getGQLResult();
   };
 
   return (

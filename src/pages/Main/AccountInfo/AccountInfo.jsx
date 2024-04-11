@@ -96,7 +96,7 @@ const AccountInfo = ({
         loading={loading}
         selectedProvider={{ addr: selectedAddr, bip: selectedAddrBip, otherBip: selectedAddrOtherBip }}
       />
-      {!isConnected && <div className="w-full h-full bg-[#ffffff00] absolute z-[100]"></div>}
+      {!isConnected && <div className="w-full h-full bg-[#ffffff00] absolute z-[8]"></div>}
 
       <div className="flex flex-1 flex-col rounded border p-5 relative pt-10 gap-1 justify-around">
         <div className="mb-5">

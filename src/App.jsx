@@ -1,4 +1,5 @@
 import "./App.css";
+import "./assets/css/button.css";
 import Layout from "./layouts/Layout";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Page404 from "./pages/Page404";
@@ -8,7 +9,7 @@ import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
 import { RPC_URL, EXPLORER_URL } from "./config";
 import { BetterHelmet, useSeo } from "@limeyfy/react-seo";
 
-const projectId = "prj_gMcJ7AZpBwfD7jJhQ2ORUqST2enE";
+const projectId = "3813077b0b880bb11d2c05d9021e28ac";
 
 // 2. Set chains
 const songbirdNet = {
@@ -31,8 +32,8 @@ const flareNet = {
 const metadata = {
   name: "Flare Universe",
   description: "Flare Universe encourage users to manage their assets easily",
-  url: "https://flareuniverse.com", // origin must match your domain & subdomain
-  icons: ["https://avatars.flareuniverse.com/"],
+  url: "http://localhost:3001", // origin must match your domain & subdomain
+  icons: ["favicon.png"],
 };
 
 // 4. Create Ethers config

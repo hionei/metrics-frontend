@@ -3,7 +3,7 @@ import ListItemDecorator from "@mui/joy/ListItemDecorator";
 import ListDivider from "@mui/joy/ListDivider";
 import Select from "@mui/joy/Select";
 import Option from "@mui/joy/Option";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Button from "@mui/joy/Button";
 import { TSONAME } from "../../config";
 import Link from "@mui/joy/Link";
@@ -16,6 +16,7 @@ import { useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { changeNetwork } from "../../store/reducers/networkSlice";
 import { useNavigate } from "react-router-dom";
+import WalletConnectDialog from "./WalletConnectDialog";
 
 const options = [
   { value: 1, label: "Songbird", src: "/static/images/SGB.svg" },
@@ -39,6 +40,7 @@ function renderValue(option) {
 
 const Header = () => {
   const { open } = useWeb3Modal();
+  const [modalShow, setModalShow] = useState(false);
   const location = useLocation();
   const dispatch = useDispatch();
   const { address, chainId, isConnected } = useWeb3ModalAccount();
@@ -48,8 +50,17 @@ const Header = () => {
     dispatch(changeNetwork(newValue));
   };
 
+  const onClickWalletConnect = () => {
+    setModalShow(true);
+  };
+
+  const onHandleCloseDlg = () => {
+    setModalShow(false);
+  };
+
   return (
     <header className="flex flex-row px-4 py-3 align-center border-b shadow-lg min-h-[70px]">
+      <WalletConnectDialog open={modalShow} handleClickOpen={onClickWalletConnect} handleClose={onHandleCloseDlg} />
       <div className="flex items-center gap-2 align-center justify-center">
         <Avatar src="logo.png" size="md" />
         <Typography level="h4" color="primary">

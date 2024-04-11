@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@apollo/client": "^3.9.6",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@limeyfy/react-seo": "^2.0.2",
@@ -24,8 +23,6 @@
     "axios": "^1.6.7",
     "bignumber.js": "^9.1.2",
     "ethers": "^6.11.1",
-    "glob": "8.0.3",
-    "graphql": "^16.8.1",
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
