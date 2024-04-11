@@ -147,8 +147,10 @@ const Monitor = () => {
         <Switcher handleChange={handleChange} defaultChecked={defaultChecked} />
       </div>
 
-      <Table rows={providersInfo} totalVotePower={totalVP} />
-      <div>{showProgress && <LinearProgress variant="determinate" value={progress} />}</div>
+      <div className="min-h-[70vh]">
+        <Table rows={providersInfo} totalVotePower={totalVP} />
+        <div>{showProgress && <LinearProgress variant="determinate" value={progress} />}</div>
+      </div>
     </>
   );
 };
