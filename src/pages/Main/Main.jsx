@@ -106,6 +106,14 @@ const Main = () => {
       const balance = await ethersProvider.getBalance(address);
       setBalance(formatUnits(balance, 18));
       const signer = await ethersProvider.getSigner();
+      // const signature = await signer?.signMessage(
+      //   JSON.stringify({
+      //     Alarm: "You are a member of Flare Universe",
+      //     Address: signer.address,
+      //     url: "https://flareuniverse.xyz",
+      //     expireIn: "8/10/2024",
+      //   })
+      // );
       const WSGBContract = new Contract(WSGBAddress[chainId], WSGBAbi, signer);
       const WSGBBalance = await WSGBContract.balanceOf(address);
       setWSGBBalance(formatUnits(WSGBBalance, 18));
