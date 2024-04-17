@@ -61,7 +61,7 @@ const Header = () => {
   return (
     <header className="flex flex-row px-4 py-3 align-center border-b shadow-lg min-h-[70px]">
       <WalletConnectDialog open={modalShow} handleClickOpen={onClickWalletConnect} handleClose={onHandleCloseDlg} />
-      <div className="flex items-center gap-2 align-center justify-center">
+      <div className="flex items-center gap-1 align-center justify-center">
         <Avatar src="logo.png" size="lg" />
         <Typography level="h4" color="primary">
           {TSONAME}

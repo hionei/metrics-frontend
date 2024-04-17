@@ -1,7 +1,5 @@
 import IconButton from "@mui/material/IconButton";
-import DeleteIcon from "@mui/icons-material/Delete";
 import XIcon from "@mui/icons-material/X";
-import TwitterIcon from "@mui/icons-material/Twitter";
 import EmailIcon from "@mui/icons-material/Email";
 import { useState } from "react";
 import SvgIcon from "@mui/material/SvgIcon";

@@ -1,6 +1,6 @@
 import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import { useWeb3ModalProvider, useWeb3ModalAccount } from "@web3modal/ethers/react";
+import { useWeb3ModalAccount } from "@web3modal/ethers/react";
 import { useEffect, useState } from "react";
 import { getWeb3 } from "../../../utils/web3";
 import { useSelector } from "react-redux";
@@ -9,7 +9,6 @@ import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import Skeleton from "@mui/material/Skeleton";
 import DelegateDlg from "../Dialogs/DelegateDlg";
 import { EXPLORER_URL, SYMBOLS, WRAPSYMBOLS } from "../../../config";
-import LinearProgress from "@mui/material/LinearProgress";
 import RoundedLabel from "../../../components/RoundedLabel";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import GetAppIcon from "@mui/icons-material/GetApp";

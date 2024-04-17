@@ -7,7 +7,7 @@ import Main from "./pages/Main";
 import Monitor from "./pages/Monitor";
 import { createWeb3Modal, defaultConfig } from "@web3modal/ethers/react";
 import { RPC_URL, EXPLORER_URL } from "./config";
-import { BetterHelmet, useSeo } from "@limeyfy/react-seo";
+import { BetterHelmet } from "@limeyfy/react-seo";
 
 const projectId = "3813077b0b880bb11d2c05d9021e28ac";
 
